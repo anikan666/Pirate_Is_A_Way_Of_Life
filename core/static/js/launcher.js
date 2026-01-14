@@ -3,13 +3,13 @@
  * Handles modal/lightbox functionality for loading experiments in iframes
  */
 
-(function() {
+(function () {
     'use strict';
 
     // ==========================================
     // DOM ELEMENTS
     // ==========================================
-    
+
     const modal = document.getElementById('experiment-modal');
     const modalBackdrop = document.getElementById('modal-backdrop');
     const modalContainer = document.getElementById('modal-container');
@@ -20,7 +20,7 @@
     // ==========================================
     // STATE
     // ==========================================
-    
+
     let isModalOpen = false;
     let currentExperimentId = null;
 
@@ -34,7 +34,7 @@
      * @param {string} url - The URL to load in the iframe
      * @param {string} name - The experiment name for the title
      */
-    window.openExperimentModal = function(experimentId, url, name) {
+    window.openExperimentModal = function (experimentId, url, name) {
         if (isModalOpen || !url || url === '#') return;
 
         isModalOpen = true;
@@ -47,10 +47,10 @@
 
         // Show modal with animation
         modal.classList.remove('hidden');
-        
+
         // Trigger reflow for animation
         void modal.offsetWidth;
-        
+
         modal.classList.add('modal-open');
 
         // Lock body scroll
@@ -62,7 +62,7 @@
         }, 100);
 
         // Handle iframe load
-        modalIframe.onload = function() {
+        modalIframe.onload = function () {
             modalLoading.classList.add('loaded');
         };
 
@@ -73,7 +73,7 @@
     /**
      * Close the experiment modal
      */
-    window.closeExperimentModal = function() {
+    window.closeExperimentModal = function () {
         if (!isModalOpen) return;
 
         isModalOpen = false;
@@ -98,12 +98,26 @@
         }
     };
 
+    /**
+     * Handle card click - reads data from data attributes to avoid apostrophe issues
+     * @param {HTMLElement} cardElement - The clicked card element
+     */
+    window.handleCardClick = function (cardElement) {
+        const experimentId = cardElement.dataset.experimentId;
+        const url = cardElement.dataset.experimentUrl;
+        const name = cardElement.dataset.experimentName;
+
+        if (experimentId && url && url !== '#') {
+            openExperimentModal(experimentId, url, name);
+        }
+    };
+
     // ==========================================
     // EVENT LISTENERS
     // ==========================================
 
     // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         // ESC to close modal
         if (e.key === 'Escape' && isModalOpen) {
             e.preventDefault();
@@ -112,7 +126,7 @@
     });
 
     // Handle browser back/forward navigation
-    window.addEventListener('popstate', function(e) {
+    window.addEventListener('popstate', function (e) {
         if (isModalOpen && !e.state?.experimentId) {
             closeExperimentModal();
         } else if (!isModalOpen && e.state?.experimentId) {
@@ -127,7 +141,7 @@
     });
 
     // Handle deep linking on page load
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const hash = window.location.hash.slice(1);
         if (hash) {
             const card = document.querySelector(`[data-experiment-id="${hash}"]`);
@@ -147,7 +161,7 @@
             card.style.opacity = '0';
             card.style.transform = 'translateY(20px)';
             card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            
+
             setTimeout(() => {
                 card.style.opacity = '1';
                 card.style.transform = 'translateY(0)';
@@ -162,7 +176,7 @@
     /**
      * Handle message events from iframe (for cross-origin communication)
      */
-    window.addEventListener('message', function(e) {
+    window.addEventListener('message', function (e) {
         // Only handle messages from our own iframes
         if (e.data?.type === 'pirate-lab-close') {
             closeExperimentModal();
