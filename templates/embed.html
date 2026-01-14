@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Widget</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8f9fb;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f2f5;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a5a;
+            --text-muted: #8a8a9a;
+            --accent-primary: #3b82f6;
+            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --accent-glow: 0 4px 16px rgba(59, 130, 246, 0.3);
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 1rem;
+            min-height: 100vh;
+        }
+
+        .widget-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .widget-header {
+            background: var(--accent-gradient);
+            color: white;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .widget-header-icon {
+            font-size: 1.5rem;
+        }
+
+        .widget-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .widget-body {
+            padding: 1.25rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 100px;
+            max-height: 200px;
+            transition: border-color 0.2s;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .voice-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .voice-select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .controls-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .slider-group {
+            background: var(--bg-tertiary);
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.4rem;
+        }
+
+        .slider-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .slider-value {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .slider-input {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--bg-secondary);
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .slider-input::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: var(--accent-glow);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-generate.loading .btn-text {
+            visibility: hidden;
+        }
+
+        .btn-generate.loading::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .audio-player.show {
+            display: block;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            height: 40px;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .status-message.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-primary);
+        }
+
+        .powered-by {
+            text-align: center;
+            padding: 0.75rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .powered-by a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .char-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="widget-container">
+        <div class="widget-header">
+            <span class="widget-header-icon">🎙️</span>
+            <h2>Text to Speech</h2>
+        </div>
+
+        <div class="widget-body">
+            <div class="input-group">
+                <label class="input-label">Your Text</label>
+                <textarea class="text-input" id="text-input"
+                    placeholder="Enter text to convert to speech..."></textarea>
+                <div class="char-count"><span id="char-count">0</span> / 5000</div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Voice</label>
+                <select class="voice-select" id="voice-select">
+                    <option value="">Loading voices...</option>
+                </select>
+            </div>
+
+            <div class="controls-row">
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Speed</span>
+                        <span class="slider-value" id="speed-value">1.0x</span>
+                    </div>
+                    <input type="range" class="slider-input" id="speed-slider" min="50" max="300" value="150">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Volume</span>
+                        <span class="slider-value" id="volume-value">100%</span>
+                    </div>
+                    <input type="range" class="slider-input" id="volume-slider" min="0" max="100" value="100">
+                </div>
+            </div>
+
+            <button class="btn-generate" id="generate-btn">
+                <span class="btn-text">🔊 Generate Speech</span>
+            </button>
+
+            <div class="audio-player" id="audio-player-container">
+                <audio id="audio-player" controls></audio>
+            </div>
+
+            <div class="status-message" id="status-message"></div>
+        </div>
+
+        <div class="powered-by">
+            Powered by <a href="https://github.com/anikan666/Pirate_Is_A_Way_Of_Life" target="_blank">Free TTS</a> •
+            300+ Neural Voices
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const BASE_URL = '{{ base_url }}';
+
+        // Helper function to build API URLs
+        function apiUrl(path) {
+            return BASE_URL + path;
+        }
+
+        // DOM Elements
+        const textInput = document.getElementById('text-input');
+        const charCount = document.getElementById('char-count');
+        const voiceSelect = document.getElementById('voice-select');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedValue = document.getElementById('speed-value');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeValue = document.getElementById('volume-value');
+        const generateBtn = document.getElementById('generate-btn');
+        const audioPlayerContainer = document.getElementById('audio-player-container');
+        const audioPlayer = document.getElementById('audio-player');
+        const statusMessage = document.getElementById('status-message');
+
+        // State
+        let voices = [];
+        let selectedVoiceId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadVoices);
+
+        // Character count
+        textInput.addEventListener('input', () => {
+            charCount.textContent = textInput.value.length;
+        });
+
+        // Sliders
+        speedSlider.addEventListener('input', () => {
+            speedValue.textContent = `${(parseInt(speedSlider.value) / 150).toFixed(1)}x`;
+        });
+
+        volumeSlider.addEventListener('input', () => {
+            volumeValue.textContent = `${volumeSlider.value}%`;
+        });
+
+        // Voice selection
+        voiceSelect.addEventListener('change', () => {
+            selectedVoiceId = voiceSelect.value;
+        });
+
+        // Load voices
+        async function loadVoices() {
+            try {
+                const response = await fetch(apiUrl('/api/voices'));
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    voices = data.voices;
+
+                    // Populate select with common voices first
+                    const popularLocales = ['en-US', 'en-GB', 'en-AU'];
+                    const sortedVoices = [...voices].sort((a, b) => {
+                        const aPopular = popularLocales.some(l => a.locale?.startsWith(l)) ? 0 : 1;
+                        const bPopular = popularLocales.some(l => b.locale?.startsWith(l)) ? 0 : 1;
+                        return aPopular - bPopular || (a.display_name || a.name).localeCompare(b.display_name || b.name);
+                    });
+
+                    voiceSelect.innerHTML = sortedVoices.map(voice => {
+                        const name = (voice.display_name || voice.name)
+                            .replace(/Microsoft |Online \(Natural\) - | Neural/gi, '')
+                            .substring(0, 40);
+                        return `<option value="${voice.id}">${name}</option>`;
+                    }).join('');
+
+                    if (voices.length > 0) {
+                        selectedVoiceId = sortedVoices[0].id;
+                    }
+                }
+            } catch (error) {
+                showStatus('error', 'Failed to load voices');
+            }
+        }
+
+        // Generate speech
+        generateBtn.addEventListener('click', async () => {
+            const text = textInput.value.trim();
+
+            if (!text) {
+                showStatus('error', 'Please enter some text');
+                return;
+            }
+
+            if (!selectedVoiceId) {
+                showStatus('error', 'Please select a voice');
+                return;
+            }
+
+            generateBtn.classList.add('loading');
+            generateBtn.disabled = true;
+            showStatus('info', 'Generating speech...');
+
+            try {
+                const response = await fetch(apiUrl('/api/speak'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        voice_id: selectedVoiceId,
+                        rate: parseInt(speedSlider.value),
+                        volume: parseInt(volumeSlider.value)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success' && data.audio_url) {
+                    audioPlayer.src = apiUrl(data.audio_url);
+                    audioPlayerContainer.classList.add('show');
+                    audioPlayer.play();
+                    showStatus('success', 'Speech generated successfully!');
+                } else {
+                    showStatus('error', data.message || 'Generation failed');
+                }
+            } catch (error) {
+                showStatus('error', 'Failed to generate speech');
+            } finally {
+                generateBtn.classList.remove('loading');
+                generateBtn.disabled = false;
+            }
+        });
+
+        function showStatus(type, message) {
+            statusMessage.className = `status-message show ${type}`;
+            statusMessage.textContent = message;
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusMessage.classList.remove('show');
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+
+</html>

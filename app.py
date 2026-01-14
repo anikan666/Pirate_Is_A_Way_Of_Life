@@ -37,9 +37,16 @@ app = Flask(__name__)
 # CONFIGURATION
 # =============================================================================
 
+# Base URL for embedding (used when app is hosted on a subdomain/subpath)
+BASE_URL = os.environ.get('BASE_URL', '').rstrip('/')
+
 # Storage Configuration
 STORAGE_TYPE = os.environ.get('STORAGE_TYPE', 'local').lower()
 FILE_MAX_AGE_SECONDS = int(os.environ.get('FILE_MAX_AGE_SECONDS', 3600))  # 1 hour default
+
+# Embedding Configuration
+EMBED_ALLOWED = os.environ.get('EMBED_ALLOWED', 'true').lower() == 'true'
+EMBED_PARENT_ORIGINS = os.environ.get('EMBED_PARENT_ORIGINS', '*')  # Allowed parent origins for iframe
 
 # Import storage backend
 from storage import get_storage_backend, LocalStorage
@@ -263,7 +270,44 @@ def text_to_speech_edge(text, voice_id, rate=150, volume=100, save_file=False):
 @limiter.limit("60 per minute")
 def index():
     """Render the main page"""
-    return render_template('index.html')
+    return render_template('index.html', base_url=BASE_URL, embed_mode=False)
+
+
+@app.route('/embed')
+@limiter.limit("60 per minute")
+def embed():
+    """Render the embeddable widget version"""
+    if not EMBED_ALLOWED:
+        return jsonify({'status': 'error', 'message': 'Embedding is disabled'}), 403
+    
+    response = render_template('embed.html', base_url=BASE_URL, embed_mode=True)
+    
+    # Set headers for iframe embedding
+    resp = app.make_response(response)
+    if EMBED_PARENT_ORIGINS != '*':
+        resp.headers['Content-Security-Policy'] = f"frame-ancestors {EMBED_PARENT_ORIGINS}"
+    resp.headers['X-Frame-Options'] = 'ALLOWALL'
+    return resp
+
+
+@app.route('/embed-docs')
+@limiter.limit("30 per minute")
+def embed_docs():
+    """Render the embedding documentation and example page"""
+    return render_template('embed-example.html')
+
+
+@app.route('/api/config', methods=['GET'])
+@limiter.limit("30 per minute")
+def api_config():
+    """API endpoint to get frontend configuration"""
+    return jsonify({
+        'status': 'success',
+        'base_url': BASE_URL,
+        'storage_type': STORAGE_TYPE,
+        'file_max_age_seconds': FILE_MAX_AGE_SECONDS,
+        'embed_allowed': EMBED_ALLOWED
+    })
 
 
 @app.route('/api/voices', methods=['GET'])

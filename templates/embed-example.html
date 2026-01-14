@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Widget Embedding Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #1a1a2e;
+        }
+
+        .example-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #3b82f6;
+            margin-top: 0;
+        }
+
+        pre {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        code {
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        .highlight {
+            color: #3b82f6;
+        }
+
+        .comment {
+            color: #6b7280;
+        }
+
+        .demo-container {
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        iframe {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .note {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .size-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .size-option {
+            padding: 0.5rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .size-option:hover,
+        .size-option.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎙️ TTS Widget Embedding Guide</h1>
+
+    <div class="example-section">
+        <h2>Quick Start</h2>
+        <p>Embed the TTS widget in your website using an iframe:</p>
+
+        <pre><code><span class="comment">&lt;!-- Basic Embedding --&gt;</span>
+&lt;<span class="highlight">iframe</span>
+    src="<span class="highlight">https://your-domain.com/embed</span>"
+    width="520"
+    height="500"
+    frameborder="0"
+    allow="autoplay"
+&gt;&lt;/<span class="highlight">iframe</span>&gt;</code></pre>
+
+        <div class="note">
+            <strong>📝 Note:</strong> Replace <code>https://your-domain.com</code> with your actual deployed TTS app
+            URL.
+        </div>
+    </div>
+
+    <div class="example-section">
+        <h2>Live Demo</h2>
+        <p>Choose a size and see the widget in action:</p>
+
+        <div class="size-options">
+            <div class="size-option active" onclick="resizeWidget(520, 500, this)">Standard (520×500)</div>
+            <div class="size-option" onclick="resizeWidget(400, 450, this)">Compact (400×450)</div>
+            <div class="size-option" onclick="resizeWidget(600, 550, this)">Large (600×550)</div>
+            <div class="size-option" onclick="resizeWidget('100%', 500, this)">Full Width</div>
+        </div>
+
+        <div class="demo-container">
+            <iframe id="tts-widget" src="/embed" width="520" height="500" allow="autoplay"></iframe>
+        </div>
+    </div>
+
+    <div class="example-section">
+        <h2>Configuration Options</h2>
+
+        <h3>Environment Variables</h3>
+        <pre><code><span class="comment"># Allow embedding (default: true)</span>
+EMBED_ALLOWED=true
+
+<span class="comment"># Restrict parent origins for security (default: * allows all)</span>
+EMBED_PARENT_ORIGINS=https://yourdomain.com https://another-allowed.com
+
+<span class="comment"># Base URL if hosted on a subdomain or path</span>
+BASE_URL=https://tts.yourdomain.com</code></pre>
+
+        <h3>Styling Tips</h3>
+        <ul>
+            <li>The widget adapts to its container width (min 350px recommended)</li>
+            <li>Minimum height: 450px for comfortable use</li>
+            <li>Uses rounded corners - add padding if your container has square corners</li>
+        </ul>
+    </div>
+
+    <div class="example-section">
+        <h2>API Integration</h2>
+        <p>You can also integrate directly with the API for custom implementations:</p>
+
+        <pre><code><span class="comment">// Get available voices</span>
+fetch('<span class="highlight">/api/voices</span>')
+    .then(res => res.json())
+    .then(data => console.log(data.voices));
+
+<span class="comment">// Generate speech</span>
+fetch('<span class="highlight">/api/speak</span>', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        text: 'Hello world!',
+        voice_id: 'en-US-AriaNeural',
+        rate: 150,
+        volume: 100
+    })
+})
+.then(res => res.json())
+.then(data => {
+    <span class="comment">// Play the audio</span>
+    const audio = new Audio(data.audio_url);
+    audio.play();
+});</code></pre>
+
+        <h3>Available Endpoints</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background: #f0f0f0;">
+                <th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #ddd;">Endpoint</th>
+                <th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #ddd;">Method</th>
+                <th style="padding: 0.75rem; text-align: left; border-bottom: 2px solid #ddd;">Description</th>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;"><code>/api/config</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">GET</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">Get app configuration</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;"><code>/api/voices</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">GET</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">List available voices</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;"><code>/api/speak</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">POST</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">Generate speech (returns audio URL)</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;"><code>/api/save</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">POST</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">Save speech to file</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        function resizeWidget(width, height, element) {
+            const iframe = document.getElementById('tts-widget');
+            iframe.style.width = typeof width === 'number' ? width + 'px' : width;
+            iframe.style.height = height + 'px';
+
+            document.querySelectorAll('.size-option').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

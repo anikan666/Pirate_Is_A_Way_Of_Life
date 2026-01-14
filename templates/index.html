@@ -1019,6 +1019,15 @@ Tips:
     </div>
 
     <script>
+        // Configuration - BASE_URL is set by the server for embedding support
+        const BASE_URL = '{{ base_url }}';
+        const EMBED_MODE = {{ 'true' if embed_mode else 'false' }};
+
+        // Helper function to build API URLs
+        function apiUrl(path) {
+            return BASE_URL + path;
+        }
+
         // DOM Elements
         const textInput = document.getElementById('text-input');
         const charCount = document.getElementById('char-count');
@@ -1155,7 +1164,7 @@ Tips:
         // Load voices
         async function loadVoices() {
             try {
-                const response = await fetch('/api/voices');
+                const response = await fetch(apiUrl('/api/voices'));
                 const data = await response.json();
                 if (data.status === 'success') {
                     allVoices = data.voices;
@@ -1218,7 +1227,7 @@ Tips:
         async function previewVoice(voiceId, voiceType) {
             showToast('info', '🔊', 'Previewing...');
             try {
-                const response = await fetch('/api/speak', {
+                const response = await fetch(apiUrl('/api/speak'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1231,7 +1240,7 @@ Tips:
                 });
                 const data = await response.json();
                 if (data.audio_url) {
-                    audioPlayer.src = data.audio_url;
+                    audioPlayer.src = apiUrl(data.audio_url);
                     audioPlayerSection.classList.add('show');
                     audioPlayer.play();
                 }
@@ -1250,7 +1259,7 @@ Tips:
             showToast('info', '🔊', 'Generating...');
 
             try {
-                const response = await fetch('/api/speak', {
+                const response = await fetch(apiUrl('/api/speak'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1263,7 +1272,7 @@ Tips:
                 });
                 const data = await response.json();
                 if (data.status === 'success' && data.audio_url) {
-                    audioPlayer.src = data.audio_url;
+                    audioPlayer.src = apiUrl(data.audio_url);
                     audioPlayerSection.classList.add('show');
                     audioPlayer.play();
                     showToast('success', '✓', 'Done!');
@@ -1285,7 +1294,7 @@ Tips:
             showToast('info', '💾', 'Saving...');
 
             try {
-                const response = await fetch('/api/save', {
+                const response = await fetch(apiUrl('/api/save'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1313,7 +1322,7 @@ Tips:
         // Load history
         async function loadHistory() {
             try {
-                const response = await fetch('/api/history');
+                const response = await fetch(apiUrl('/api/history'));
                 const data = await response.json();
                 if (data.status === 'success') {
                     filesData = data.files;
@@ -1382,7 +1391,7 @@ Tips:
                 const newName = input.value.trim();
                 if (newName && newName !== currentName) {
                     try {
-                        const response = await fetch(`/api/rename/${filename}`, {
+                        const response = await fetch(apiUrl(`/api/rename/${filename}`), {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ new_name: newName })
@@ -1430,7 +1439,7 @@ Tips:
         }
 
         function playFile(filename) {
-            audioPlayer.src = `/api/play/${filename}`;
+            audioPlayer.src = apiUrl(`/api/play/${filename}`);
             audioPlayerSection.classList.add('show');
             audioPlayer.play();
             // Switch to create tab to see player
@@ -1438,11 +1447,11 @@ Tips:
         }
 
         function downloadFile(filename) {
-            window.location.href = `/api/download/${filename}`;
+            window.location.href = apiUrl(`/api/download/${filename}`);
         }
 
         function deleteFile(filename) {
-            fetch(`/api/delete/${filename}`, { method: 'DELETE' })
+            fetch(apiUrl(`/api/delete/${filename}`), { method: 'DELETE' })
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success') {
