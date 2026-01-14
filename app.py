@@ -1,15 +1,13 @@
 """
 Why Should I Pay For ElevenLabs - Free Text-to-Speech
-Supports both offline (pyttsx3) and online (Edge TTS) speech synthesis
+Supports Microsoft Edge TTS (300+ neural voices)
 """
 
 from flask import Flask, render_template, request, jsonify, send_file
-import pyttsx3
 import edge_tts
 import asyncio
 import os
 import uuid
-import threading
 from datetime import datetime
 
 app = Flask(__name__)
@@ -18,28 +16,8 @@ app = Flask(__name__)
 AUDIO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'audio_output')
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
-# Thread lock for pyttsx3 (not thread-safe)
-tts_lock = threading.Lock()
-
 # Cache for Edge TTS voices
 edge_voices_cache = None
-
-
-def get_offline_voices():
-    """Get list of available offline voices (pyttsx3/SAPI)"""
-    engine = pyttsx3.init()
-    voices = engine.getProperty('voices')
-    voice_list = []
-    for voice in voices:
-        voice_list.append({
-            'id': voice.id,
-            'name': voice.name,
-            'type': 'offline',
-            'languages': getattr(voice, 'languages', []),
-            'gender': getattr(voice, 'gender', 'unknown')
-        })
-    engine.stop()
-    return voice_list
 
 
 async def get_edge_voices_async():
@@ -47,7 +25,6 @@ async def get_edge_voices_async():
     voices = await edge_tts.list_voices()
     voice_list = []
     for voice in voices:
-        # Only include English voices for simplicity, but include all
         voice_list.append({
             'id': voice['ShortName'],
             'name': f"{voice['ShortName']} ({voice['Locale']})",
@@ -74,43 +51,6 @@ def get_edge_voices():
     except Exception as e:
         print(f"Error getting Edge voices: {e}")
         return []
-
-
-def text_to_speech_offline(text, voice_id=None, rate=150, volume=1.0, save_file=False):
-    """
-    Convert text to speech using pyttsx3 (offline)
-    """
-    with tts_lock:
-        engine = pyttsx3.init()
-        
-        if voice_id:
-            engine.setProperty('voice', voice_id)
-        
-        engine.setProperty('rate', rate)
-        engine.setProperty('volume', volume)
-        
-        result = {'status': 'success', 'message': 'Speech generated successfully'}
-        
-        if save_file:
-            filename = f"speech_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.mp3"
-            filepath = os.path.join(AUDIO_DIR, filename)
-            
-            try:
-                engine.save_to_file(text, filepath)
-                engine.runAndWait()
-                result['file'] = filename
-                result['filepath'] = filepath
-            except Exception as e:
-                result = {'status': 'error', 'message': str(e)}
-        else:
-            try:
-                engine.say(text)
-                engine.runAndWait()
-            except Exception as e:
-                result = {'status': 'error', 'message': str(e)}
-        
-        engine.stop()
-        return result
 
 
 async def text_to_speech_edge_async(text, voice_id, rate=0, volume=100, filepath=None):
@@ -176,25 +116,10 @@ def index():
 
 @app.route('/api/voices', methods=['GET'])
 def api_get_voices():
-    """API endpoint to get all available voices (offline + Edge TTS)"""
+    """API endpoint to get all available Edge TTS voices"""
     try:
-        all_voices = []
-        
-        # Get offline voices
-        try:
-            offline_voices = get_offline_voices()
-            all_voices.extend(offline_voices)
-        except Exception as e:
-            print(f"Error getting offline voices: {e}")
-        
-        # Get Edge TTS voices
-        try:
-            edge_voices = get_edge_voices()
-            all_voices.extend(edge_voices)
-        except Exception as e:
-            print(f"Error getting Edge voices: {e}")
-        
-        return jsonify({'status': 'success', 'voices': all_voices})
+        voices = get_edge_voices()
+        return jsonify({'status': 'success', 'voices': voices})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
@@ -209,23 +134,17 @@ def api_speak():
     
     text = data['text']
     voice_id = data.get('voice_id')
-    voice_type = data.get('voice_type', 'offline')
     rate = int(data.get('rate', 150))
-    volume = float(data.get('volume', 1.0))
+    volume = int(data.get('volume', 100))
     
     # Validate parameters
     rate = max(50, min(300, rate))
+    volume = max(0, min(100, volume))
     
-    if voice_type == 'edge':
-        # Edge TTS - save to temp file and return path for browser playback
-        volume_percent = int(volume * 100)
-        result = text_to_speech_edge(text, voice_id, rate, volume_percent, save_file=False)
-        if result.get('temp_file'):
-            result['audio_url'] = f"/api/play/{os.path.basename(result['temp_file'])}"
-    else:
-        # Offline TTS - speaks through system speakers
-        volume = max(0.0, min(1.0, volume))
-        result = text_to_speech_offline(text, voice_id, rate, volume, save_file=False)
+    # Use Edge TTS
+    result = text_to_speech_edge(text, voice_id, rate, volume, save_file=False)
+    if result.get('temp_file'):
+        result['audio_url'] = f"/api/play/{os.path.basename(result['temp_file'])}"
     
     if result['status'] == 'success':
         return jsonify(result)
@@ -254,19 +173,15 @@ def api_save():
     
     text = data['text']
     voice_id = data.get('voice_id')
-    voice_type = data.get('voice_type', 'offline')
     rate = int(data.get('rate', 150))
-    volume = float(data.get('volume', 1.0))
+    volume = int(data.get('volume', 100))
     
     # Validate parameters
     rate = max(50, min(300, rate))
+    volume = max(0, min(100, volume))
     
-    if voice_type == 'edge':
-        volume_percent = int(volume * 100)
-        result = text_to_speech_edge(text, voice_id, rate, volume_percent, save_file=True)
-    else:
-        volume = max(0.0, min(1.0, volume))
-        result = text_to_speech_offline(text, voice_id, rate, volume, save_file=True)
+    # Use Edge TTS
+    result = text_to_speech_edge(text, voice_id, rate, volume, save_file=True)
     
     if result['status'] == 'success':
         return jsonify(result)
@@ -377,8 +292,7 @@ if __name__ == '__main__':
     print("🎙️ Why Should I Pay For ElevenLabs - Free TTS")
     print("="*55)
     print("\n📍 Open http://localhost:5000 in your browser")
-    print("🔊 Offline voices: Windows SAPI")
-    print("🌐 Online voices: Microsoft Edge TTS (300+ voices)")
+    print("🌐 Online voices: Microsoft Edge TTS (300+ neural voices)")
     print("💾 Audio files saved to:", AUDIO_DIR)
     print("\n" + "="*55 + "\n")
     

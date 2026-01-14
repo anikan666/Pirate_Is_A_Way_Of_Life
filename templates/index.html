@@ -469,11 +469,6 @@
             color: var(--accent-primary);
         }
 
-        .voice-type-tag.offline {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-        }
-
         .voice-preview-btn {
             width: 24px;
             height: 24px;
@@ -943,8 +938,7 @@ Tips:
                             <input type="text" class="voice-search-input" id="voice-search" placeholder="Search...">
                         </div>
                         <div class="voice-type-pills">
-                            <button class="voice-pill active" data-type="all" id="pill-all">All</button>
-                            <button class="voice-pill" data-type="offline" id="pill-offline">💻 Local</button>
+                            <button class="voice-pill active" data-type="all" id="pill-all">All Voices</button>
                             <button class="voice-pill" data-type="edge" id="pill-edge">☁️ Neural</button>
                         </div>
                         <div class="voice-cards-container" id="voice-list"></div>
@@ -1204,7 +1198,7 @@ Tips:
                         <div class="voice-info">
                             <div class="voice-name">${name}</div>
                             <div class="voice-meta">
-                                ${gender} <span class="voice-type-tag ${voice.type}">${voice.type === 'edge' ? 'Neural' : 'Local'}</span>
+                                ${gender} <span class="voice-type-tag edge">Neural</span>
                             </div>
                         </div>
                         <button class="voice-preview-btn" onclick="event.stopPropagation(); previewVoice('${voice.id}', '${voice.type}')">▶</button>
