@@ -1,0 +1,125 @@
+/**
+ * Anish Sood Portfolio - Minimalist Light Theme
+ * Clean, sophisticated light theme with subtle accents
+ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES
+   ============================================ */
+
+:root {
+    --color-bg: #fafafa;
+    --color-surface: #ffffff;
+    --color-card: #ffffff;
+    --color-border: #e5e5e5;
+    --color-border-light: #d4d4d4;
+    --color-text: #171717;
+    --color-text-muted: #525252;
+    --color-text-subtle: #a3a3a3;
+
+    --transition-fast: 150ms ease;
+    --transition-normal: 200ms ease;
+}
+
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar - Minimal */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border-light);
+}
+
+/* Selection */
+::selection {
+    background: rgba(23, 23, 23, 0.1);
+    color: var(--color-text);
+}
+
+
+/* ============================================
+   EXPERIMENT CARDS
+   ============================================ */
+
+.experiment-card {
+    position: relative;
+}
+
+.experiment-card[data-experiment-status="live"]:active>div {
+    transform: scale(0.99);
+}
+
+
+/* ============================================
+   MODAL STYLES
+   ============================================ */
+
+#experiment-modal {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s linear 0.2s, opacity 0.2s ease;
+}
+
+#experiment-modal.modal-open {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+#experiment-modal.modal-open #modal-container {
+    transform: scale(1);
+    opacity: 1;
+}
+
+#modal-loading {
+    transition: opacity 0.2s ease;
+}
+
+#modal-loading.loaded {
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    #modal-container {
+        border-radius: 0.75rem;
+        height: 90vh;
+    }
+}
+
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+
+.bg-gradient-radial {
+    background: radial-gradient(ellipse at center, var(--tw-gradient-from), var(--tw-gradient-to));
+}
