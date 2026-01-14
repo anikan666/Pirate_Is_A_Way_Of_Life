@@ -265,7 +265,8 @@ def api_speak():
     
     result = text_to_speech_edge(text, voice_id, rate, volume, save_file=False)
     if result.get('temp_file'):
-        result['audio_url'] = f"/experiments/tts/api/play/{result['temp_file']}"
+        # Return relative path - frontend's apiUrl() will add /experiments/tts prefix
+        result['audio_url'] = f"/api/play/{result['temp_file']}"
     
     if result['status'] == 'success':
         return jsonify(result)
@@ -385,3 +386,44 @@ def api_delete(filename):
         return jsonify({'status': 'success', 'message': 'File deleted'})
     else:
         return jsonify({'status': 'error', 'message': 'File not found or delete failed'}), 404
+
+
+@tts_bp.route('/api/rename/<filename>', methods=['POST'])
+def api_rename_file(filename):
+    """API endpoint to rename an audio file"""
+    safe_filename = sanitize_filename(filename)
+    if not safe_filename:
+        return jsonify({'status': 'error', 'message': 'Invalid filename'}), 400
+    
+    if not storage.file_exists(safe_filename):
+        return jsonify({'status': 'error', 'message': 'File not found'}), 404
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'status': 'error', 'message': 'Invalid request body'}), 400
+        
+        new_name = data.get('new_name', '').strip()
+        
+        if not new_name:
+            return jsonify({'status': 'error', 'message': 'New name is required'}), 400
+        
+        if len(new_name) > MAX_FILENAME_LENGTH:
+            return jsonify({'status': 'error', 'message': f'Filename too long (max {MAX_FILENAME_LENGTH} chars)'}), 400
+        
+        ext = os.path.splitext(safe_filename)[1]
+        safe_new_name = "".join(c for c in new_name if c.isalnum() or c in (' ', '-', '_')).strip()
+        if not safe_new_name:
+            return jsonify({'status': 'error', 'message': 'Invalid filename characters'}), 400
+        
+        new_filename = safe_new_name + ext
+        
+        if storage.file_exists(new_filename) and new_filename != safe_filename:
+            return jsonify({'status': 'error', 'message': 'A file with that name already exists'}), 400
+        
+        if storage.rename_file(safe_filename, new_filename):
+            return jsonify({'status': 'success', 'message': 'File renamed', 'new_filename': new_filename})
+        else:
+            return jsonify({'status': 'error', 'message': 'Failed to rename file'}), 500
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': 'Failed to rename file'}), 500
