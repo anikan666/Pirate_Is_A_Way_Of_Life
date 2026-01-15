@@ -97,8 +97,9 @@
                 {% for exp in experiments %}
                 <article class="experiment-card group relative" data-experiment-id="{{ exp.id }}"
                     data-experiment-url="{{ exp.url }}" data-experiment-status="{{ exp.status }}"
-                    data-experiment-name="{{ exp.name }}"
-                    onclick="{% if exp.status == 'live' %}handleCardClick(this){% endif %}">
+                    data-experiment-name="{{ exp.name }}" {% if exp.open_external %}
+                    onclick="window.open('{{ exp.url }}', '_blank')" {% else %}
+                    onclick="{% if exp.status == 'live' %}handleCardClick(this){% endif %}" {% endif %}>
                     <div
                         class="relative bg-lab-card border border-lab-border rounded-xl p-6 h-full transition-all duration-300 
                                 {% if exp.status == 'live' %}cursor-pointer hover:border-lab-border-light hover:shadow-md{% else %}cursor-not-allowed opacity-60{% endif %}">

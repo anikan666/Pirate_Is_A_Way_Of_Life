@@ -6,7 +6,18 @@ __pycache__/
 # Virtual environment
 venv/
 env/
+
+# Sensitive files - API keys, credentials
 .env
+.env.*
+*.env
+credentials.json
+token.json
+client_secret*.json
+
+# Temporary test files
+check_models*.py
+models.txt
 
 # Audio output directory (generated files)
 audio_output/

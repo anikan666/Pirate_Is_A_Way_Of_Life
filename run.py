@@ -20,6 +20,9 @@ def create_app():
                 template_folder=os.path.join(BASE_DIR, 'core', 'templates'),
                 static_folder=os.path.join(BASE_DIR, 'core', 'static'))
     
+    # Secret key for sessions
+    app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_super_secret_pirate')
+    
     # CORS Configuration
     CORS(app, resources={
         r"/api/*": {
@@ -36,6 +39,10 @@ def create_app():
     # Register Experiment Blueprints
     from experiments.tts_pirate.routes import tts_bp
     app.register_blueprint(tts_bp, url_prefix='/experiments/tts')
+    
+    # Register Daily Planner Blueprint
+    from experiments.daily_planner.routes import daily_planner_bp
+    app.register_blueprint(daily_planner_bp, url_prefix='/experiments/planner')
     
     return app
 

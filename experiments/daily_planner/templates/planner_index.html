@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow State | Daily Planner</title>
+    <!-- Tailwind CSS (using same style as main app) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'lab': {
+                            'bg': '#fafafa',
+                            'card': '#ffffff',
+                            'text': '#171717',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Pulse animation for loading dots */
+        .loading-dot {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Skeleton animation */
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: relative;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            border-radius: 2px;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% {
+                left: -30%;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-lab-bg font-sans text-lab-text min-h-screen flex items-center justify-center p-4">
+
+    <!-- Login Card (Initial State) -->
+    <div id="login-card" class="bg-white p-10 rounded-2xl shadow-xl max-w-lg w-full text-center border border-gray-100">
+        <div
+            class="mb-6 inline-flex items-center justify-center w-20 h-20 bg-blue-50 text-blue-600 rounded-full text-4xl">
+            📅
+        </div>
+
+        <h1 class="text-3xl font-bold mb-3 tracking-tight">Flow State</h1>
+        <p class="text-gray-500 mb-8 text-lg">
+            Your AI Executive Assistant. Connect Gmail to generate a prioritized daily briefing.
+        </p>
+
+        <button id="login-btn" onclick="startLogin()"
+            class="inline-flex items-center justify-center w-full px-6 py-4 text-lg font-medium text-white transition-all bg-blue-600 rounded-xl hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fab fa-google mr-3"></i>
+            Connect with Google
+        </button>
+
+        <p class="mt-6 text-xs text-gray-400">
+            <i class="fas fa-lock mr-1"></i>
+            Secure • Local Processing • Read-only Access
+        </p>
+    </div>
+
+    <!-- Loading State (After Login, Before Dashboard) -->
+    <div id="loading-card" class="hidden bg-white p-10 rounded-2xl shadow-xl max-w-lg w-full border border-gray-100">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="spinner mx-auto mb-6"></div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2" id="loading-title">Preparing Your Day</h2>
+            <p class="text-sm text-gray-500" id="loading-subtitle">Connecting to your email...</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="progress-bar mb-8"></div>
+
+        <!-- Loading Steps -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-3 loading-step" id="step-auth">
+                <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <i class="fas fa-check text-xs"></i>
+                </div>
+                <span class="text-sm text-gray-700">Authenticating with Google</span>
+            </div>
+
+            <div class="flex items-center gap-3 loading-step" id="step-emails">
+                <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <div class="w-2 h-2 rounded-full bg-current loading-dot"></div>
+                </div>
+                <span class="text-sm text-gray-500">Fetching your emails</span>
+            </div>
+
+            <div class="flex items-center gap-3 loading-step" id="step-ai">
+                <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <div class="w-2 h-2 rounded-full bg-current loading-dot"></div>
+                </div>
+                <span class="text-sm text-gray-500">AI analyzing tasks</span>
+            </div>
+
+            <div class="flex items-center gap-3 loading-step" id="step-schedule">
+                <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <div class="w-2 h-2 rounded-full bg-current loading-dot"></div>
+                </div>
+                <span class="text-sm text-gray-500">Building your schedule</span>
+            </div>
+        </div>
+
+        <!-- Skeleton Preview -->
+        <div class="mt-8 pt-6 border-t border-gray-100">
+            <p class="text-xs text-gray-400 mb-3">Preview of your day</p>
+            <div class="space-y-2">
+                <div class="flex gap-3">
+                    <div class="skeleton w-12 h-4 rounded"></div>
+                    <div class="skeleton flex-1 h-4 rounded"></div>
+                </div>
+                <div class="flex gap-3">
+                    <div class="skeleton w-12 h-4 rounded"></div>
+                    <div class="skeleton flex-1 h-4 rounded"></div>
+                </div>
+                <div class="flex gap-3">
+                    <div class="skeleton w-12 h-4 rounded"></div>
+                    <div class="skeleton flex-1 h-4 rounded"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tip -->
+        <p class="mt-6 text-xs text-center text-gray-400">
+            <i class="fas fa-lightbulb mr-1 text-yellow-500"></i>
+            Tip: Label emails with "Tasks to be tracked" in Gmail for better results
+        </p>
+    </div>
+
+    <script>
+        let pollInterval = null;
+        let progressSteps = ['auth', 'emails', 'ai', 'schedule'];
+        let currentStep = 0;
+
+        function startLogin() {
+            // Open popup for Google Auth
+            const width = 500;
+            const height = 600;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+
+            window.open(
+                "{{ url_for('daily_planner.login') }}",
+                "Google Login",
+                `width=${width},height=${height},top=${top},left=${left}`
+            );
+
+            // Immediately show loading state
+            document.getElementById('login-card').classList.add('hidden');
+            document.getElementById('loading-card').classList.remove('hidden');
+
+            // Start progress simulation
+            simulateProgress();
+
+            // Poll to check if user is logged in
+            pollInterval = setInterval(function () {
+                fetch("{{ url_for('daily_planner.check_auth') }}")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.authenticated) {
+                            clearInterval(pollInterval);
+                            // Update loading state
+                            updateStep('auth', 'complete');
+                            updateStep('emails', 'active');
+                            document.getElementById('loading-title').textContent = 'Fetching Your Emails';
+                            document.getElementById('loading-subtitle').textContent = 'This may take a moment...';
+
+                            // Redirect to dashboard (which will show server-side loading)
+                            setTimeout(() => {
+                                window.location.href = "{{ url_for('daily_planner.dashboard') }}";
+                            }, 500);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Auth check error:', err);
+                    });
+            }, 1500);
+        }
+
+        function simulateProgress() {
+            // Simulate progress through steps while waiting for auth
+            setTimeout(() => updateStep('auth', 'active'), 500);
+        }
+
+        function updateStep(stepId, status) {
+            const step = document.getElementById('step-' + stepId);
+            if (!step) return;
+
+            const icon = step.querySelector('div');
+            const text = step.querySelector('span');
+
+            if (status === 'complete') {
+                icon.className = 'w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600';
+                icon.innerHTML = '<i class="fas fa-check text-xs"></i>';
+                text.className = 'text-sm text-gray-700';
+            } else if (status === 'active') {
+                icon.className = 'w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600';
+                icon.innerHTML = '<div class="w-2 h-2 rounded-full bg-current loading-dot"></div>';
+                text.className = 'text-sm text-blue-600 font-medium';
+            }
+        }
+    </script>
+
+
+
+</body>
+
+</html>

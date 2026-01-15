@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow State | Daily Schedule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 'sans': ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 900: '#0f172a' },
+                        blue: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* Grid slot styling */
+        .grid-slot {
+            height: 3.5rem;
+            max-height: 3.5rem;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-slot:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .grid-slot.occupied {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+
+        /* Scheduled task styling - prevent overflow */
+        .scheduled-task {
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .scheduled-task span.truncate {
+            max-width: calc(100% - 4.5rem);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Task spanning multiple slots */
+        .task-span-1 {
+            grid-column: span 1;
+        }
+
+        .task-span-2 {
+            grid-column: span 2;
+        }
+
+        .task-span-3 {
+            grid-column: span 3;
+        }
+
+        .task-span-4 {
+            grid-column: span 4;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        details>summary {
+            list-style: none;
+        }
+
+        details>summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-slate-900 h-full flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="h-12 border-b border-gray-200 flex items-center justify-between px-5 bg-white shrink-0 z-10">
+        <div class="flex items-center gap-3">
+            <div class="p-1.5 bg-slate-900 rounded-lg text-white"><i data-lucide="zap" class="w-3.5 h-3.5"></i></div>
+            <h1 class="text-sm font-semibold tracking-tight text-slate-900">Flow State</h1>
+            <span class="text-slate-300 mx-1">/</span>
+            <span class="text-xs text-slate-500">{{ date }}</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div
+                class="flex items-center gap-2 px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-[10px] font-medium">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                {{ stats.analyzed }} Analyzed
+            </div>
+            <a href="{{ url_for('daily_planner.logout') }}"
+                class="text-[10px] font-medium text-slate-400 hover:text-red-500">Sign Out</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex overflow-hidden">
+
+        <!-- Left: Grid Timeline -->
+        <section class="flex-[0.6] bg-slate-50 border-r border-gray-200 p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-3 shrink-0">
+                <h2 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i> Daily Flow
+                </h2>
+                <span class="text-[10px] text-slate-400">Drag to schedule • Resize for duration</span>
+            </div>
+
+            <!-- Time Grid Header -->
+            <div class="grid grid-cols-[4rem_1fr_1fr_1fr_1fr] gap-1 mb-1 shrink-0">
+                <div></div>
+                <div class="text-center text-[10px] text-slate-400 font-medium">:00</div>
+                <div class="text-center text-[10px] text-slate-400 font-medium">:15</div>
+                <div class="text-center text-[10px] text-slate-400 font-medium">:30</div>
+                <div class="text-center text-[10px] text-slate-400 font-medium">:45</div>
+            </div>
+
+            <!-- Time Grid Body -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                {% for hour_data in schedule %}
+                <div class="grid grid-cols-[4rem_1fr_1fr_1fr_1fr] gap-1 mb-1">
+                    <!-- Hour Label -->
+                    <div class="flex items-center justify-end pr-2">
+                        <span class="text-xs font-semibold text-slate-600">{{ hour_data.hour_label }}</span>
+                    </div>
+
+                    <!-- 4 Quarter Slots -->
+                    {% for slot in hour_data.slots %}
+                    <div class="grid-slot border border-dashed border-slate-200 rounded-md bg-white timeline-slot flex items-center justify-center"
+                        data-time="{{ slot.time }}" data-hour="{{ hour_data.hour_24 }}" data-minute="{{ slot.minute }}"
+                        style="position: relative;">
+                        {% if slot.type != 'empty' %}
+                        <div class="scheduled-task bg-blue-50 border border-blue-200 rounded px-1.5 py-1 w-full h-full flex items-center gap-1"
+                            data-item-id="server-{{ loop.index }}" data-title="{{ slot.activity }}" data-span="1"
+                            data-start-time="{{ slot.time }}" data-role="only" draggable="true">
+                            <span class="text-[9px] font-medium text-slate-800 flex-1 truncate">{{ slot.activity
+                                }}</span>
+                            <div class="duration-controls flex items-center shrink-0">
+                                <button onclick="decreaseDuration(this)"
+                                    class="w-5 h-5 flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 text-[10px] font-bold rounded-l border-r border-blue-200"
+                                    title="15m">−</button>
+                                <button onclick="increaseDuration(this)"
+                                    class="w-5 h-5 flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 text-[10px] font-bold rounded-r"
+                                    title="15m">+</button>
+                            </div>
+                            <button onclick="clearTask(this)" class="text-slate-400 hover:text-red-500 shrink-0"><i
+                                    data-lucide="x" class="w-3 h-3"></i></button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Right: Action Items -->
+        <section class="flex-[0.4] bg-white flex flex-col shadow-xl shadow-slate-200/50">
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-100 shrink-0">
+                <button onclick="switchTab('tasks')" id="tab-btn-tasks"
+                    class="flex-1 py-2.5 text-xs font-medium text-center border-b-2 border-blue-600 text-blue-600">Action
+                    Items</button>
+                <button onclick="switchTab('emails')" id="tab-btn-emails"
+                    class="flex-1 py-2.5 text-xs font-medium text-center border-b-2 border-transparent text-slate-400">Source
+                    Inbox</button>
+            </div>
+
+            <!-- Tab: Action Items -->
+            <div id="tab-content-tasks" class="flex-1 overflow-y-auto custom-scrollbar p-3 bg-slate-50/30">
+                <div
+                    class="mb-2 p-1.5 bg-white rounded border border-slate-100 flex items-center justify-center gap-3 text-[9px]">
+                    <div class="flex items-center gap-1"><span
+                            class="w-2 h-2 rounded-full bg-blue-100 border border-blue-300"></span><span>You</span>
+                    </div>
+                    <div class="flex items-center gap-1"><span
+                            class="w-2 h-2 rounded-full bg-amber-100 border border-amber-300"></span><span>Follow
+                            Up</span></div>
+                    <div class="flex items-center gap-1"><span
+                            class="w-2 h-2 rounded-full bg-gray-100 border border-gray-300"></span><span>FYI</span>
+                    </div>
+                </div>
+
+                <div id="action-items-list" class="space-y-2">
+                    {% for item in tasks %}
+                    <div class="task-card bg-white p-2.5 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 hover:shadow cursor-grab active:cursor-grabbing group transition-all"
+                        data-id="task-{{ loop.index }}" data-title="{{ item.title }}" data-duration="1"
+                        draggable="true">
+
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="text-[11px] font-semibold text-slate-900 leading-snug pr-4 line-clamp-2">{{
+                                item.title }}</h4>
+                            {% if item.source_email_id %}
+                            <button onclick="event.stopPropagation(); openSourceEmail({{ item.source_email_id }})"
+                                class="shrink-0 text-slate-400 hover:text-blue-600" title="View Email">
+                                <i data-lucide="mail" class="w-3 h-3"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex items-center gap-1 flex-wrap">
+                            {% if item.action_type == 'Do' %}
+                            <span
+                                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[8px] font-semibold">
+                                <i data-lucide="user-check" class="w-2 h-2"></i> You
+                            </span>
+                            {% elif item.action_type == 'Follow-up' %}
+                            <span
+                                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[8px] font-semibold">
+                                <i data-lucide="bell" class="w-2 h-2"></i> {{ item.assignee or 'Delegate' }}
+                            </span>
+                            {% elif item.action_type == 'FYI' %}
+                            <span
+                                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[8px] font-semibold">
+                                <i data-lucide="info" class="w-2 h-2"></i> FYI
+                            </span>
+                            {% endif %}
+
+                            {% if item.urgency == 'Critical' or item.urgency == 'High' %}
+                            <span
+                                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 text-[8px] font-medium">
+                                <div class="w-1 h-1 rounded-full bg-red-500"></div> Urgent
+                            </span>
+                            {% endif %}
+
+                            {% if item.timeline_context and item.timeline_context != 'No deadline' %}
+                            <span
+                                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600 text-[8px] font-medium">
+                                <i data-lucide="clock" class="w-2 h-2"></i> {{ item.timeline_context }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="flex flex-col items-center justify-center mt-12 text-slate-400">
+                        <i data-lucide="check-circle-2" class="w-8 h-8 mb-2 text-slate-200"></i>
+                        <p class="text-[10px]">All caught up!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tab: Emails -->
+            <div id="tab-content-emails" class="hidden flex-1 flex flex-col overflow-hidden bg-slate-50/30">
+                <div class="px-3 py-2 border-b border-slate-100">
+                    <button onclick="switchTab('tasks')"
+                        class="flex items-center gap-1 text-[10px] text-blue-600 font-medium">
+                        <i data-lucide="arrow-left" class="w-3 h-3"></i> Back
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-3">
+                    {% for email in emails %}
+                    <details id="email-{{ loop.index }}"
+                        class="mb-2 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                        <summary class="p-2 cursor-pointer hover:bg-slate-50 select-none">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="font-semibold text-[9px] text-slate-900 shrink-0">{{ email.sender
+                                        }}</span>
+                                    <span class="text-[9px] text-slate-500 truncate">{{ email.subject }}</span>
+                                </div>
+                                <i data-lucide="chevron-down" class="w-3 h-3 text-slate-300"></i>
+                            </div>
+                        </summary>
+                        <div class="px-2 pb-2">
+                            <p
+                                class="text-[9px] text-slate-600 font-mono bg-slate-50 p-2 rounded border border-slate-100">
+                                {{ email.snippet }}</p>
+                        </div>
+                    </details>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Sync Button -->
+            <div class="p-3 border-t border-gray-100 bg-white shrink-0">
+                <button id="sync-btn" onclick="syncSchedule()"
+                    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-[11px] font-medium py-2.5 rounded-lg shadow flex items-center justify-center gap-2 disabled:opacity-50">
+                    <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                    <span id="sync-btn-text">Confirm & Sync to Calendar</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        lucide.createIcons();
+
+        const scheduledTasks = {}; // { slotTime: { taskId, title, duration } }
+        const taskSlotMap = {};    // { taskId: startSlotTime }
+        const actionItemsList = document.getElementById('action-items-list');
+
+        // Initialize scheduledTasks from server-rendered tasks on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.timeline-slot .scheduled-task[data-role="only"], .timeline-slot .scheduled-task[data-role="first"]').forEach(task => {
+                const slot = task.closest('.timeline-slot');
+                if (!slot) return;
+
+                const slotTime = slot.getAttribute('data-time');
+                const taskId = task.getAttribute('data-item-id');
+                const title = task.getAttribute('data-title') || task.querySelector('span')?.textContent?.trim() || 'Task';
+                const span = parseInt(task.getAttribute('data-span') || '1');
+
+                if (slotTime && taskId) {
+                    scheduledTasks[slotTime] = {
+                        taskId,
+                        title,
+                        duration: span * 15,
+                        span
+                    };
+                    taskSlotMap[taskId] = slotTime;
+                    console.log('Initialized scheduled task:', slotTime, title);
+                }
+            });
+            console.log('Total scheduled tasks on load:', Object.keys(scheduledTasks).length);
+        });
+
+        function switchTab(tabId) {
+            ['tasks', 'emails'].forEach(t => {
+                document.getElementById('tab-content-' + t).classList.toggle('hidden', t !== tabId);
+                const btn = document.getElementById('tab-btn-' + t);
+                btn.classList.toggle('border-blue-600', t === tabId);
+                btn.classList.toggle('text-blue-600', t === tabId);
+                btn.classList.toggle('border-transparent', t !== tabId);
+                btn.classList.toggle('text-slate-400', t !== tabId);
+            });
+        }
+
+        function openSourceEmail(id) {
+            switchTab('emails');
+            const el = document.getElementById('email-' + id);
+            if (el) {
+                el.open = true;
+                setTimeout(() => {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('ring-2', 'ring-blue-500');
+                    setTimeout(() => el.classList.remove('ring-2', 'ring-blue-500'), 2000);
+                }, 100);
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function restoreTaskToList(taskId) {
+            if (!taskId) return;
+            const card = actionItemsList.querySelector(`[data-id="${taskId}"]`);
+            if (card) { card.style.display = ''; }
+            if (taskSlotMap[taskId]) {
+                delete scheduledTasks[taskSlotMap[taskId]];
+                delete taskSlotMap[taskId];
+            }
+        }
+
+        function hideTaskFromList(taskId) {
+            if (!taskId) return;
+            const card = actionItemsList.querySelector(`[data-id="${taskId}"]`);
+            if (card) { card.style.display = 'none'; }
+        }
+
+        // Get all slots for a task based on start time and span
+        function getTaskSlots(startHour, startMinute, span) {
+            const slots = [];
+            let hour = startHour;
+            let minute = startMinute;
+
+            for (let i = 0; i < span; i++) {
+                const slot = document.querySelector(
+                    `.timeline-slot[data-hour="${hour}"][data-minute="${minute}"]`
+                );
+                if (slot) slots.push(slot);
+
+                // Move to next 15-min slot
+                minute += 15;
+                if (minute >= 60) {
+                    minute = 0;
+                    hour += 1;
+                }
+            }
+            return slots;
+        }
+
+        // Render all slots for a task - title in first, controls in last
+        function renderTaskSlots(startSlot, taskId, title, span) {
+            const startHour = parseInt(startSlot.getAttribute('data-hour'));
+            const startMinute = parseInt(startSlot.getAttribute('data-minute'));
+            const startTime = startSlot.getAttribute('data-time');
+            const slots = getTaskSlots(startHour, startMinute, span);
+
+            const durationLabels = { 1: '15m', 2: '30m', 3: '45m', 4: '1h', 5: '1h15m', 6: '1h30m', 7: '1h45m', 8: '2h' };
+            const durationLabel = durationLabels[span] || `${span * 15}m`;
+
+            slots.forEach((slot, index) => {
+                const isFirst = index === 0;
+                const isLast = index === slots.length - 1;
+                const isOnly = slots.length === 1;
+
+                let html;
+                if (isOnly) {
+                    // Single slot - show title and controls
+                    html = `<div class="scheduled-task bg-blue-50 border border-blue-200 rounded px-1.5 py-1 w-full h-full flex items-center gap-1" 
+                                data-item-id="${taskId}" data-title="${title}" data-span="${span}" 
+                                data-start-time="${startTime}" data-role="only" draggable="true">
+                        <span class="text-[9px] font-medium text-slate-800 flex-1 truncate">${title}</span>
+                        <div class="duration-controls flex items-center shrink-0">
+                            <button onclick="decreaseDuration(this)" class="w-5 h-5 flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 text-[10px] font-bold rounded-l border-r border-blue-200" title="${durationLabel}">−</button>
+                            <button onclick="increaseDuration(this)" class="w-5 h-5 flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 text-[10px] font-bold rounded-r" title="${durationLabel}">+</button>
+                        </div>
+                        <button onclick="clearTask(this)" class="text-slate-400 hover:text-red-500 shrink-0"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>`;
+                } else if (isFirst) {
+                    // First slot - show title, right border open
+                    html = `<div class="scheduled-task bg-blue-50 border border-blue-200 border-r-0 rounded-l px-1.5 py-1 w-full h-full flex items-center" 
+                                data-item-id="${taskId}" data-title="${title}" data-span="${span}" 
+                                data-start-time="${startTime}" data-role="first" draggable="true">
+                        <span class="text-[9px] font-medium text-slate-800 truncate">${title}</span>
+                    </div>`;
+                } else if (isLast) {
+                    // Last slot - controls only, left border open
+                    html = `<div class="scheduled-task bg-blue-50 border border-blue-200 border-l-0 rounded-r px-1.5 py-1 w-full h-full flex items-center justify-end gap-1" 
+                                data-item-id="${taskId}" data-title="${title}" data-span="${span}" 
+                                data-start-time="${startTime}" data-role="last">
+                        <div class="duration-controls flex items-center shrink-0">
+                            <button onclick="decreaseDuration(this)" class="w-5 h-5 flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 text-[10px] font-bold rounded-l border-r border-blue-200" title="${durationLabel}">−</button>
+                            <button onclick="increaseDuration(this)" class="w-5 h-5 flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 text-[10px] font-bold rounded-r" title="${durationLabel}">+</button>
+                        </div>
+                        <button onclick="clearTask(this)" class="text-slate-400 hover:text-red-500 shrink-0"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>`;
+                } else {
+                    // Middle slot - just a continuation bar
+                    html = `<div class="scheduled-task bg-blue-50 border-t border-b border-blue-200 px-1 py-1 w-full h-full" 
+                                data-item-id="${taskId}" data-title="${title}" data-span="${span}" 
+                                data-start-time="${startTime}" data-role="middle">
+                    </div>`;
+                }
+
+                slot.innerHTML = html;
+            });
+
+            lucide.createIcons();
+        }
+
+        // Clear all slots for a task
+        function clearTaskSlots(startTime) {
+            document.querySelectorAll(`[data-start-time="${startTime}"]`).forEach(el => {
+                el.parentElement.innerHTML = '';
+            });
+        }
+
+        function changeDuration(btn, delta) {
+            const task = btn.closest('.scheduled-task');
+            const startTime = task.getAttribute('data-start-time');
+            const currentSpan = parseInt(task.getAttribute('data-span') || '1');
+            const taskId = task.getAttribute('data-item-id');
+            const title = task.getAttribute('data-title');
+
+            // Find the start slot
+            const startSlot = document.querySelector(`.timeline-slot[data-time="${startTime}"]`);
+            if (!startSlot) return;
+
+            const startHour = parseInt(startSlot.getAttribute('data-hour'));
+            const startMinute = parseInt(startSlot.getAttribute('data-minute'));
+
+            // Calculate new span (min 1, max 8 = 2 hours)
+            const newSpan = Math.max(1, Math.min(8, currentSpan + delta));
+            if (newSpan === currentSpan) return;
+
+            // Check if next slot is available (for increase) or just decrease
+            if (delta > 0) {
+                const nextSlots = getTaskSlots(startHour, startMinute, newSpan);
+                // Check if the new slot is empty or already ours
+                const lastNewSlot = nextSlots[nextSlots.length - 1];
+                if (!lastNewSlot) return; // No slot available
+                const existing = lastNewSlot.querySelector('.scheduled-task');
+                if (existing && existing.getAttribute('data-start-time') !== startTime) {
+                    return; // Slot occupied by different task
+                }
+            }
+
+            // Clear old slots
+            clearTaskSlots(startTime);
+
+            // Render new slots
+            renderTaskSlots(startSlot, taskId, title, newSpan);
+
+            // Update tracking
+            if (scheduledTasks[startTime]) {
+                scheduledTasks[startTime].duration = newSpan * 15;
+                scheduledTasks[startTime].span = newSpan;
+            }
+        }
+
+        function increaseDuration(btn) {
+            changeDuration(btn, 1);
+        }
+
+        function decreaseDuration(btn) {
+            changeDuration(btn, -1);
+        }
+
+        function clearTask(btn) {
+            const task = btn.closest('.scheduled-task');
+            const startTime = task.getAttribute('data-start-time');
+            const taskId = task.getAttribute('data-item-id');
+
+            // Clear all slots for this task
+            clearTaskSlots(startTime);
+
+            // Restore to action items
+            restoreTaskToList(taskId);
+
+            // Clean up tracking
+            delete scheduledTasks[startTime];
+            delete taskSlotMap[taskId];
+
+            lucide.createIcons();
+        }
+
+        // Legacy function for compatibility
+        function clearSlot(btn) {
+            clearTask(btn);
+        }
+
+        // Initialize Sortable on action items
+        if (actionItemsList) {
+            new Sortable(actionItemsList, {
+                group: { name: 'tasks', pull: 'clone', put: true },
+                animation: 150, sort: false, ghostClass: 'opacity-50',
+                onAdd: function (evt) {
+                    const item = evt.item;
+                    const taskId = item.getAttribute('data-item-id');
+                    if (taskId) { restoreTaskToList(taskId); item.remove(); }
+                }
+            });
+        }
+
+        // Initialize Sortable on each grid slot
+        document.querySelectorAll('.timeline-slot').forEach(slot => {
+            // Store existing task info BEFORE Sortable modifies the DOM
+            let existingTaskInfo = null;
+
+            new Sortable(slot, {
+                group: { name: 'tasks', pull: true, put: true },
+                animation: 150, ghostClass: 'bg-blue-100',
+                onStart: function (evt) {
+                    // Capture existing task in target slot BEFORE drop happens
+                    existingTaskInfo = null;
+                },
+                onMove: function (evt) {
+                    // When hovering over a slot, capture any existing task info
+                    const targetSlot = evt.to;
+                    if (targetSlot && targetSlot.classList.contains('timeline-slot')) {
+                        const existingTask = targetSlot.querySelector('.scheduled-task');
+                        if (existingTask && existingTask !== evt.dragged) {
+                            existingTaskInfo = {
+                                id: existingTask.getAttribute('data-item-id'),
+                                startTime: existingTask.getAttribute('data-start-time')
+                            };
+                        } else {
+                            existingTaskInfo = null;
+                        }
+                    }
+                    return true; // Allow the move
+                },
+                onAdd: function (evt) {
+                    const draggedItem = evt.item;
+                    const slotTime = slot.getAttribute('data-time');
+
+                    const isFromList = draggedItem.classList.contains('task-card');
+                    const isFromSlot = draggedItem.classList.contains('scheduled-task');
+
+                    let taskId, title, oldStartTime;
+                    if (isFromList) {
+                        taskId = draggedItem.getAttribute('data-id');
+                        title = draggedItem.getAttribute('data-title');
+                    } else if (isFromSlot) {
+                        taskId = draggedItem.getAttribute('data-item-id');
+                        title = draggedItem.getAttribute('data-title') || draggedItem.querySelector('span')?.textContent || 'Task';
+                        oldStartTime = draggedItem.getAttribute('data-start-time');
+                    }
+
+                    if (!taskId || !title) { draggedItem.remove(); return; }
+
+                    // Handle existing task in slot using captured info
+                    // Also check current slot contents as a fallback
+                    let existingId = existingTaskInfo?.id;
+                    let existingStartTime = existingTaskInfo?.startTime;
+
+                    // Also scan for any existing tasks that aren't the dragged one
+                    const currentExisting = Array.from(slot.querySelectorAll('.scheduled-task'))
+                        .find(el => el !== draggedItem && el.getAttribute('data-item-id') !== taskId);
+                    if (currentExisting) {
+                        existingId = existingId || currentExisting.getAttribute('data-item-id');
+                        existingStartTime = existingStartTime || currentExisting.getAttribute('data-start-time');
+                    }
+
+                    if (existingId && existingId !== taskId) {
+                        // Clear all slots for the existing task
+                        if (existingStartTime) {
+                            clearTaskSlots(existingStartTime);
+                            delete scheduledTasks[existingStartTime];
+                        }
+                        // Restore displaced task to action items list
+                        restoreTaskToList(existingId);
+                        delete taskSlotMap[existingId];
+                    }
+
+                    // Reset captured info
+                    existingTaskInfo = null;
+
+                    // Hide from action items if from there
+                    if (isFromList) hideTaskFromList(taskId);
+
+                    // Clear old slots if moving between slots
+                    if (oldStartTime && oldStartTime !== slotTime) {
+                        clearTaskSlots(oldStartTime);
+                        delete scheduledTasks[oldStartTime];
+                    }
+                    if (taskSlotMap[taskId]) {
+                        const oldTime = taskSlotMap[taskId];
+                        if (oldTime !== slotTime) {
+                            clearTaskSlots(oldTime);
+                            delete scheduledTasks[oldTime];
+                        }
+                    }
+
+                    draggedItem.remove();
+
+                    // Render as single slot task
+                    renderTaskSlots(slot, taskId, title, 1);
+
+                    scheduledTasks[slotTime] = { taskId, title, duration: 15, span: 1 };
+                    taskSlotMap[taskId] = slotTime;
+                },
+                onRemove: function (evt) {
+                    // Slot becomes empty - no need to rebuild, just clean up tracking
+                    const slotTime = slot.getAttribute('data-time');
+                    if (!slot.querySelector('.scheduled-task')) {
+                        delete scheduledTasks[slotTime];
+                    }
+                }
+            });
+        });
+
+
+        async function syncSchedule() {
+            console.log('=== SYNC SCHEDULE DEBUG ===');
+            console.log('scheduledTasks object:', JSON.stringify(scheduledTasks, null, 2));
+            console.log('taskSlotMap object:', JSON.stringify(taskSlotMap, null, 2));
+
+            const tasks = Object.entries(scheduledTasks).map(([time, data]) => ({
+                time, title: data.title, duration: data.duration || 15
+            }));
+            console.log('Tasks to send:', JSON.stringify(tasks, null, 2));
+
+            if (tasks.length === 0) { showToast('No tasks scheduled!', 'error'); return; }
+
+            const btn = document.getElementById('sync-btn');
+            const txt = document.getElementById('sync-btn-text');
+            btn.disabled = true; txt.textContent = 'Syncing...';
+
+            try {
+                const res = await fetch("{{ url_for('daily_planner.sync_schedule') }}", {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tasks })
+                });
+                const data = await res.json();
+                console.log('=== SERVER RESPONSE ===', JSON.stringify(data, null, 2));
+
+                if (data.success) {
+                    // Show errors if any
+                    if (data.errors && data.errors.length > 0) {
+                        console.error('Calendar sync errors:', data.errors);
+                        showToast(`Created ${data.debug?.events_created || 0} events. Errors: ${data.errors[0]}`, 'error');
+                    } else {
+                        showToast(`✓ ${data.message}`, 'success');
+                    }
+                    txt.textContent = 'Synced!';
+                    setTimeout(() => txt.textContent = 'Confirm & Sync to Calendar', 2000);
+                } else {
+                    showToast(data.error || 'Sync failed', 'error');
+                    txt.textContent = 'Confirm & Sync to Calendar';
+                }
+            } catch (e) {
+                showToast('Network error', 'error');
+                txt.textContent = 'Confirm & Sync to Calendar';
+            } finally { btn.disabled = false; }
+        }
+    </script>
+</body>
+
+</html>

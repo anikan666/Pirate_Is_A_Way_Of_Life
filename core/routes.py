@@ -26,6 +26,15 @@ EXPERIMENTS = [
         'tags': ['Voice AI', 'Neural TTS', 'Edge']
     },
     {
+        'id': 'daily-planner',
+        'name': "Don't Pay For Spark Mail",
+        'description': 'AI Executive Assistant. Connects to Gmail to prioritize your day and generate a briefing.',
+        'icon': '📧',
+        'url': '/experiments/planner/',
+        'status': 'live',
+        'tags': ['Productivity', 'Gmail', 'AI Agent']
+    },
+    {
         'id': 'coming-soon-1',
         'name': 'Voice Cloner',
         'description': 'Clone any voice with just 3 seconds of audio. Create custom voice profiles.',
