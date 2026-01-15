@@ -2,11 +2,14 @@ import os
 import datetime
 import json
 from flask import Blueprint, render_template, redirect, url_for, session, request
-from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 daily_planner_bp = Blueprint('daily_planner', __name__, template_folder='templates')
+
+# Register auth routes from auth module
+from experiments.daily_planner.auth import register_auth_routes
+register_auth_routes(daily_planner_bp)
 
 # Configuration
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,9 +31,6 @@ elif provider == 'anthropic':
     key_status = "Set" if os.environ.get('ANTHROPIC_API_KEY') else "Missing"
     print(f"DEBUG: ANTHROPIC_API_KEY is: {key_status}")
 
-# Allow OAuth over HTTP for local testing
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-
 @daily_planner_bp.route('/')
 def index():
     # Always clear credentials when index loads to force fresh login
@@ -38,58 +38,6 @@ def index():
     session.pop('credentials', None)
     session.pop('state', None)
     return render_template('planner_index.html')
-
-@daily_planner_bp.route('/login')
-def login():
-    # Check if credentials file exists
-    if not os.path.exists(CLIENT_SECRETS_FILE):
-        return "Error: credentials.json not found in project root. Please follow the instructions to download it from Google Cloud Console."
-
-    redirect_uri = url_for('daily_planner.callback', _external=True)
-    print(f"\n[DEBUG] OAuth Redirect URI: {redirect_uri}\nMake sure this EXACT URL is in your Google Cloud Console Authorized Redirect URIs.\n")
-
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE,
-        scopes=SCOPES,
-        redirect_uri=redirect_uri
-    )
-    
-    authorization_url, state = flow.authorization_url(
-        access_type='offline',
-        include_granted_scopes='true',
-        prompt='consent'  # Force consent to always get refresh_token
-    )
-    
-    session['state'] = state
-    return redirect(authorization_url)
-
-@daily_planner_bp.route('/callback')
-def callback():
-    state = session.get('state')
-    
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE,
-        scopes=SCOPES,
-        state=state,
-        redirect_uri=url_for('daily_planner.callback', _external=True)
-    )
-    
-    flow.fetch_token(authorization_response=request.url)
-    credentials = flow.credentials
-    session['credentials'] = {
-        'token': credentials.token,
-        'refresh_token': credentials.refresh_token,
-        'token_uri': credentials.token_uri,
-        'client_id': credentials.client_id,
-        'client_secret': credentials.client_secret,
-        'scopes': credentials.scopes
-    }
-    
-    return "<script>window.close();</script>"
-
-@daily_planner_bp.route('/check_auth')
-def check_auth():
-    return {'authenticated': 'credentials' in session}
 
 @daily_planner_bp.route('/dashboard')
 def dashboard():
@@ -245,7 +193,7 @@ Output ONLY valid JSON:
                 client = anthropic.Anthropic(api_key=api_key)
                 
                 message = client.messages.create(
-                    model="claude-haiku-4-5-20251001",
+                    model="claude-haiku-4-5-20250514",
                     max_tokens=4096,
                     temperature=0,
                     system="You are an elite Executive Assistant. Output only valid JSON.",
@@ -430,11 +378,6 @@ Output ONLY valid JSON:
         print(f"Error: {e}")
         # session.pop('credentials', None) # Commented out for debugging
         return f"An error occurred: {str(e)} <a href='/experiments/planner/logout'>Logout</a>"
-
-@daily_planner_bp.route('/logout')
-def logout():
-    session.pop('credentials', None)
-    return redirect(url_for('daily_planner.index'))
 
 @daily_planner_bp.route('/sync_schedule', methods=['POST'])
 def sync_schedule():
