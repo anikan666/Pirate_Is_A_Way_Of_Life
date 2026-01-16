@@ -740,7 +740,8 @@
                     txt.textContent = 'Confirm & Sync to Calendar';
                 }
             } catch (e) {
-                showToast('Network error', 'error');
+                console.error('Sync failed:', e);
+                showToast(e.message || 'Network error', 'error');
                 txt.textContent = 'Confirm & Sync to Calendar';
             } finally { btn.disabled = false; }
         }

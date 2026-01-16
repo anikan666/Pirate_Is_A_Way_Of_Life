@@ -43,6 +43,10 @@ def create_app():
     # Register Daily Planner Blueprint
     from experiments.daily_planner.routes import daily_planner_bp
     app.register_blueprint(daily_planner_bp, url_prefix='/experiments/planner')
+
+    # Register YouTube Summarizer Blueprint
+    from experiments.youtube_summarizer.app import youtube_bp
+    app.register_blueprint(youtube_bp, url_prefix='/experiments/youtube-summarizer')
     
     return app
 

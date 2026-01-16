@@ -1,4 +1,5 @@
 import os
+import logging
 import datetime
 import json
 from flask import Blueprint, render_template, redirect, url_for, session, request
@@ -6,30 +7,38 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 daily_planner_bp = Blueprint('daily_planner', __name__, template_folder='templates')
+logger = logging.getLogger(__name__)
 
 # Register auth routes from auth module
 from experiments.daily_planner.auth import register_auth_routes
+from experiments.daily_planner.gmail_service import (
+    get_gmail_service, 
+    fetch_emails_from_label, 
+    extract_sender_name
+)
+from experiments.daily_planner.ai_service import generate_plan
+from experiments.daily_planner.calendar_service import (
+    get_calendar_service,
+    sync_tasks_to_calendar
+)
 register_auth_routes(daily_planner_bp)
 
 # Configuration
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CLIENT_SECRETS_FILE = os.path.join(BASE_DIR, 'credentials.json')
-SCOPES = [
-    'https://www.googleapis.com/auth/gmail.readonly', 
-    'https://www.googleapis.com/auth/userinfo.email', 
-    'https://www.googleapis.com/auth/calendar.events',  # For syncing schedule
-    'openid'
-]
+from experiments.daily_planner.config import (
+    CLIENT_SECRETS_FILE, 
+    SCOPES, 
+    EMAIL_BODY_MAX_LENGTH
+)
 
 # Debug Environment Loading
 provider = os.environ.get('LLM_PROVIDER', 'Not Set')
-print(f"DEBUG: LLM_PROVIDER is currently: '{provider}'")
+logger.debug(f"LLM_PROVIDER is currently: '{provider}'")
 if provider == 'gemini':
     key_status = "Set" if os.environ.get('GEMINI_API_KEY') else "Missing"
-    print(f"DEBUG: GEMINI_API_KEY is: {key_status}")
+    logger.debug(f"GEMINI_API_KEY is: {key_status}")
 elif provider == 'anthropic':
     key_status = "Set" if os.environ.get('ANTHROPIC_API_KEY') else "Missing"
-    print(f"DEBUG: ANTHROPIC_API_KEY is: {key_status}")
+    logger.debug(f"ANTHROPIC_API_KEY is: {key_status}")
 
 @daily_planner_bp.route('/')
 def index():
@@ -45,58 +54,19 @@ def dashboard():
         return redirect(url_for('daily_planner.login'))
     
     try:
-        creds = Credentials(**session['credentials'])
-        service = build('gmail', 'v1', credentials=creds)
-        
-        # 1. Fetch recent emails (last 3 days to catch older tasks)
-        # 1. Fetch emails from specific label "Tasks to be tracked"
-        # We search for the label explicitly. NO DATE FILTER as requested.
-        results = service.users().messages().list(userId='me', q='label:"Tasks to be tracked"', maxResults=20).execute()
-        messages = results.get('messages', [])
-        
-        email_data = []
-        if messages:
-            for message in messages:
-                # Fetch full format to get the payload body
-                msg = service.users().messages().get(userId='me', id=message['id'], format='full').execute()
-                payload = msg['payload']
-                headers = payload['headers']
-                
-                subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
-                sender = next((h['value'] for h in headers if h['name'] == 'From'), 'Unknown')
-                date_str = next((h['value'] for h in headers if h['name'] == 'Date'), '')
-                
-                # Extract Body (Text/Plain preference)
-                body = ""
-                if 'parts' in payload:
-                    for part in payload['parts']:
-                        if part['mimeType'] == 'text/plain':
-                            import base64
-                            data = part['body'].get('data')
-                            if data:
-                                body = base64.urlsafe_b64decode(data).decode('utf-8')
-                                break
-                elif 'body' in payload:
-                    data = payload['body'].get('data')
-                    if data:
-                        import base64
-                        body = base64.urlsafe_b64decode(data).decode('utf-8')
-                
-                # Fallback to snippet if body parsing failed
-                if not body:
-                    body = msg.get('snippet', '')
-
-                email_data.append({'subject': subject, 'sender': sender, 'date': date_str, 'snippet': body})
+        # Use gmail_service module for email fetching
+        service = get_gmail_service(session['credentials'])
+        email_data = fetch_emails_from_label(service)
 
         # DEBUG: Show user what the API is actually fetching
-        print("\n--- GMAIL API DEBUG RESPONSE (Full Context) ---")
+        logger.debug("--- GMAIL API DEBUG RESPONSE (Full Context) ---")
         if email_data:
-            print(f"Fetched {len(email_data)} emails from 'Tasks to be tracked'. First entry body length: {len(email_data[0]['snippet'])}")
+            logger.debug(f"Fetched {len(email_data)} emails from 'Tasks to be tracked'. First entry body length: {len(email_data[0]['snippet'])}")
             # Print first 500 chars of first email body
-            print(f"Body Preview:\n{email_data[0]['snippet'][:500]}...")
+            logger.debug(f"Body Preview:\n{email_data[0]['snippet'][:500]}...")
         else:
-            print("Fetched 0 emails from 'Tasks to be tracked'.")
-        print("-----------------------------------------------\n")
+            logger.debug("Fetched 0 emails from 'Tasks to be tracked'.")
+        logger.debug("-----------------------------------------------")
 
         # SHORT CIRCUIT: If no emails, don't ask AI to hallucinate
         if not email_data:
@@ -108,14 +78,12 @@ def dashboard():
                              stats={'analyzed': 0, 'actionable': 0, 'newsletters': 0},
                              emails=[])
 
-        # 2. AI Planning Logic (Ollama or Gemini)
-        # ---------------------------------------
-        plan_data = None
-        ai_error = None
+        # 2. AI Planning Logic
+        # --------------------
         
         # Prepare the prompt
         # We pass the full body now, up to 2000 chars per email to avoid hitting token limits too fast
-        email_text = "\n\n".join([f"EMAIL #{i+1}:\n- From: {e['sender']}\n- Subject: {e['subject']}\n- BODY:\n{e['snippet'][:2000]}" for i, e in enumerate(email_data)])
+        email_text = "\n\n".join([f"EMAIL #{i+1}:\n- From: {e['sender']}\n- Subject: {e['subject']}\n- BODY:\n{e['snippet'][:EMAIL_BODY_MAX_LENGTH]}" for i, e in enumerate(email_data)])
         prompt = f"""
 You are an elite Executive Assistant for **Anish Sood**. 
 I will give you emails from my "Tasks to be tracked" folder.
@@ -178,119 +146,15 @@ Output ONLY valid JSON:
 }}
 """
 
-        provider = os.environ.get('LLM_PROVIDER', 'ollama').lower()
-        print(f"Using AI Provider: {provider}")
-
-        try:
-            if provider == 'anthropic':
-                # --- ANTHROPIC CLAUDE IMPLEMENTATION ---
-                import anthropic
-                
-                api_key = os.environ.get('ANTHROPIC_API_KEY')
-                if not api_key:
-                    raise Exception("ANTHROPIC_API_KEY not found in environment variables.")
-                
-                client = anthropic.Anthropic(api_key=api_key)
-                
-                message = client.messages.create(
-                    model="claude-haiku-4-5-20250514",
-                    max_tokens=4096,
-                    temperature=0,
-                    system="You are an elite Executive Assistant. Output only valid JSON.",
-                    messages=[
-                        {"role": "user", "content": prompt}
-                    ]
-                )
-                
-                # Extract text content
-                clean_text = message.content[0].text
-                # Strip markdown if present
-                clean_text = clean_text.replace('```json', '').replace('```', '').strip()
-                plan_data = json.loads(clean_text)
-                print("Successfully generated plan with Anthropic Claude Haiku!")
-
-            elif provider == 'gemini':
-                # --- GOOGLE GEMINI IMPLEMENTATION ---
-                import google.generativeai as genai
-                
-                api_key = os.environ.get('GEMINI_API_KEY')
-                if not api_key:
-                    raise Exception("GEMINI_API_KEY not found in environment variables.")
-                
-                genai.configure(api_key=api_key)
-                
-                # List of models to try in order of preference
-                candidates = [
-                    'gemini-1.5-flash',
-                    'gemini-1.5-flash-001',
-                    'gemini-1.5-pro',
-                    'gemini-2.0-flash-exp',
-                    'gemini-pro'
-                ]
-                
-                response = None
-                last_error = None
-                
-                for model_name in candidates:
-                    try:
-                        print(f"DEBUG: Attempting to use model: {model_name}")
-                        model = genai.GenerativeModel(model_name)
-                        response = model.generate_content(prompt)
-                        break # Success!
-                    except Exception as e:
-                        print(f"DEBUG: Failed with {model_name}: {e}")
-                        last_error = e
-                
-                if not response:
-                    raise last_error
-                
-                # Gemini often wraps JSON in markdown code blocks, strip them
-                clean_text = response.text.replace('```json', '').replace('```', '').strip()
-                plan_data = json.loads(clean_text)
-                print("Successfully generated plan with Google Gemini!")
-
-            else:
-                # --- LOCAL OLLAMA IMPLEMENTATION ---
-                import requests
-                # We use 'llama3' by default, fallback to 'mistral' if needed
-                response = requests.post('http://localhost:11434/api/generate', json={
-                    "model": "llama3", 
-                    "prompt": prompt,
-                    "stream": False,
-                    "format": "json"
-                }, timeout=30) 
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    plan_data = json.loads(result['response'])
-                    print("Successfully generated plan with Local LLM (Ollama)!")
-                else:
-                    ai_error = f"Ollama returned error: {response.status_code}"
-
-        except Exception as e:
-            import traceback
-            print(f"\n{'='*60}")
-            print(f"AI Generation Error ({provider})")
-            print(f"Error Type: {type(e).__name__}")
-            print(f"Error Message: {e}")
-            print(f"Traceback:")
-            traceback.print_exc()
-            print(f"{'='*60}\n")
-            ai_error = f"AI Error: {str(e)}"
-            # Fallback to Mock Data so the app allows functions
-            print("falling back to MOCK AI data for demo purposes...")
+        # Use ai_service module for LLM generation
+        plan_data = generate_plan(prompt)
 
         # 3. Final Data Preparation (Real or Mock)
         if not plan_data:
             # ROBUST FALLBACK - Generate tasks from emails with source_email_id for deep linking
             summary = f"⚠️ AI unavailable. Showing {len(email_data)} emails as tasks. Drag to schedule."
             
-            # Parse sender name from email format "Name <email@domain.com>"
-            def extract_sender_name(sender_str):
-                if '<' in sender_str:
-                    return sender_str.split('<')[0].strip().strip('"')
-                return sender_str.split('@')[0] if '@' in sender_str else sender_str
-            
+            # extract_sender_name is now imported from gmail_service
             tasks = []
             for i, email in enumerate(email_data):
                 sender_name = extract_sender_name(email['sender'])
@@ -360,7 +224,7 @@ Output ONLY valid JSON:
         schedule = schedule_by_hour
 
         stats = {
-            'analyzed': len(messages),
+            'analyzed': len(email_data),
             'actionable': len(tasks),
             'newsletters': 0
         }
@@ -375,7 +239,7 @@ Output ONLY valid JSON:
 
     except Exception as e:
         # If token expired or other error, clear session and re-login
-        print(f"Error: {e}")
+        logger.error(f"Error accessing dashboard: {e}", exc_info=True)
         # session.pop('credentials', None) # Commented out for debugging
         return f"An error occurred: {str(e)} <a href='/experiments/planner/logout'>Logout</a>"
 
@@ -386,124 +250,32 @@ def sync_schedule():
         return {'success': False, 'error': 'Not authenticated'}, 401
     
     try:
-        creds = Credentials(**session['credentials'])
-        
-        # Debug: Log the scopes we have
-        print(f"\n=== CALENDAR SYNC AUTH DEBUG ===")
-        print(f"Credentials scopes type: {type(creds.scopes)}")
-        print(f"Credentials scopes value: {creds.scopes}")
-        
-        # TEMPORARILY BYPASSED: Check if we have calendar scope
-        # The scope check was preventing events from being created.
-        # Let the Calendar API call fail with a proper error if permissions are missing.
-        has_calendar_scope = True  # Bypass for debugging
-        if creds.scopes:
-            for scope in creds.scopes:
-                if 'calendar' in scope.lower():
-                    print(f"Found calendar scope: {scope}")
-                    break
-        
-        # Commented out: if not has_calendar_scope:
-        #     ...
-        
-        print("Building calendar service...")
-        calendar_service = build('calendar', 'v3', credentials=creds)
-        print("Calendar service built successfully!")
+        # Build service using credentials from session
+        calendar_service = get_calendar_service(session['credentials'])
         
         # Parse the schedule from request
         data = request.json
-        print(f"\n=== SYNC SCHEDULE DEBUG ===")
-        print(f"Raw request data: {data}")
         scheduled_tasks = data.get('tasks', [])
-        print(f"Parsed scheduled_tasks: {scheduled_tasks}")
-        print(f"Number of tasks: {len(scheduled_tasks)}")
         
         if not scheduled_tasks:
-            print("ERROR: No tasks in request!")
             return {'success': False, 'error': 'No tasks to sync'}, 400
         
-        # Get today's date for creating events
-        today = datetime.date.today()
-        created_events = []
-        errors_list = []  # Track errors to return in response
+        # Sync tasks
+        result = sync_tasks_to_calendar(calendar_service, scheduled_tasks)
         
-        for task in scheduled_tasks:
-            # Parse time slot (e.g., "9:00 AM", "1:00 PM")
-            time_str = task.get('time', '')
-            title = task.get('title', 'Untitled Task')
-            duration_minutes = task.get('duration', 60)  # Default 1 hour
-            
-            print(f"\n--- Processing task ---")
-            print(f"Time: '{time_str}', Title: '{title}', Duration: {duration_minutes}")
-            
-            # Parse time
-            try:
-                import re
-                match = re.match(r'(\d+):(\d+)\s*(AM|PM)', time_str, re.IGNORECASE)
-                if not match:
-                    error_msg = f"Time regex did not match for '{time_str}'"
-                    print(f"ERROR: {error_msg}")
-                    errors_list.append(error_msg)
-                    continue
-                print(f"Time parsed successfully: hour={match.group(1)}, min={match.group(2)}, period={match.group(3)}")
-                    
-                hour = int(match.group(1))
-                minute = int(match.group(2))
-                period = match.group(3).upper()
-                
-                if period == 'PM' and hour != 12:
-                    hour += 12
-                elif period == 'AM' and hour == 12:
-                    hour = 0
-                
-                # Create start and end times
-                start_dt = datetime.datetime.combine(today, datetime.time(hour, minute))
-                end_dt = start_dt + datetime.timedelta(minutes=duration_minutes)
-                
-                # Create Google Calendar event
-                event = {
-                    'summary': title,
-                    'description': f'Created by Flow State Daily Planner',
-                    'start': {
-                        'dateTime': start_dt.isoformat(),
-                        'timeZone': 'Asia/Kolkata',  # TODO: Get from user settings
-                    },
-                    'end': {
-                        'dateTime': end_dt.isoformat(),
-                        'timeZone': 'Asia/Kolkata',
-                    },
-                }
-                
-                print(f"Calendar event payload: {event}")
-                created_event = calendar_service.events().insert(calendarId='primary', body=event).execute()
-                created_events.append({
-                    'id': created_event.get('id'),
-                    'title': title,
-                    'link': created_event.get('htmlLink')
-                })
-                print(f"SUCCESS: Created calendar event: {title} at {time_str}")
-                
-            except Exception as e:
-                import traceback
-                error_msg = f"Error creating '{title}': {type(e).__name__}: {str(e)}"
-                print(error_msg)
-                traceback.print_exc()
-                errors_list.append(error_msg)
-                continue
-        
+        # Return result with appropriate mapping for frontend
         return {
             'success': True,
-            'message': f'Created {len(created_events)} calendar events',
-            'events': created_events,
-            'errors': errors_list,  # Include errors so frontend can show them
+            'message': f"Created {result['events_created']} calendar events",
+            'events': result['created_events'],
+            'errors': result['errors'],
             'debug': {
-                'tasks_received': len(scheduled_tasks),
-                'events_created': len(created_events),
-                'errors_count': len(errors_list)
+                'tasks_received': result['tasks_received'],
+                'events_created': result['events_created'],
+                'errors_count': result['errors_count']
             }
         }
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.error("Error syncing schedule", exc_info=True)
         return {'success': False, 'error': str(e)}, 500

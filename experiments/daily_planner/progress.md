@@ -92,17 +92,17 @@ This is a working experiment with Gmail integration, AI task extraction, and cal
 
 ### Critical Priority
 - [x] Create `auth.py` module and move OAuth routes (`login`, `callback`, `logout`, `check_auth`)
-- [ ] Create `gmail_service.py` module with email fetching logic
-- [ ] Create `ai_service.py` module with LLM integration (Anthropic, Gemini, Ollama)
-- [ ] Create `calendar_service.py` module with Google Calendar sync logic
-- [ ] Move all `import base64` statements to top of file
-- [ ] Replace all `print()` statements with `logging` module
-- [ ] Create `config.py` for constants (timezone, max results, etc.)
-- [ ] Add environment variable for timezone configuration
-- [ ] Remove or conditionally set `OAUTHLIB_INSECURE_TRANSPORT` based on environment
+- [x] Create `gmail_service.py` module with email fetching logic
+- [x] Create `ai_service.py` module with LLM integration (Anthropic, Gemini, Ollama)
+- [x] Create `calendar_service.py` module with Google Calendar sync logic
+- [x] Move all `import base64` statements to top of file
+- [x] Replace all `print()` statements with `logging` module
+- [x] Create `config.py` for constants (timezone, max results, etc.)
+- [x] Add environment variable for timezone configuration
+- [x] Remove or conditionally set `OAUTHLIB_INSECURE_TRANSPORT` based on environment
 
 ### Moderate Priority
-- [ ] Delete unused `ai_prompt.txt` or load prompt from it
+- [x] Delete unused `ai_prompt.txt` or load prompt from it
 - [ ] Add detailed error messages to frontend catch blocks
 - [ ] Define named constants for magic numbers (EMAIL_BODY_MAX_LENGTH, MAX_RESULTS, etc.)
 - [ ] Restore calendar scope check and remove bypass comment

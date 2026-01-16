@@ -266,6 +266,8 @@
                     })
                     .catch(err => {
                         console.error('Auth check error:', err);
+                        const subtitle = document.getElementById('loading-subtitle');
+                        if (subtitle) subtitle.textContent = 'Connection issue... retrying';
                     });
             }, 1500);
         }

@@ -12,7 +12,7 @@ TRANSCRIPT_CACHE = {}
 
 @youtube_bp.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('youtube_summarizer.html')
 
 @youtube_bp.route('/summarize', methods=['POST'])
 def summarize():
@@ -40,7 +40,8 @@ def summarize():
         return jsonify({
             'status': 'success',
             'video_id': video_id,
-            'summary': summary
+            'summary': summary,
+            'transcript': transcript_text
         })
         
     except ValueError as e:

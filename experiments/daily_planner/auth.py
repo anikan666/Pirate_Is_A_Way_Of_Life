@@ -17,8 +17,9 @@ SCOPES = [
 ]
 
 # Allow OAuth over HTTP for local testing
-# TODO: Remove or conditionally set based on environment
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# Only set this in development environments
+if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 
 def register_auth_routes(bp):

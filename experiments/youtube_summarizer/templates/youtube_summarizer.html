@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don't Pay for Eightify</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <style>
+        :root {
+            /* ElevenLabs Light Theme */
+            --bg-color: #ffffff;
+            --surface-color: #f9fafb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --accent: #2563eb;
+            /* Royal Blue */
+            --accent-hover: #1d4ed8;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        body {
+            font-family: 'Charter', 'Bitstream Charter', serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        header {
+            padding: 0 2rem;
+            height: 60px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-color);
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Inter', system-ui, sans-serif;
+            /* Keep logo readable */
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: normal;
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        /* Left Sidebar: Input + Video + Chat (30%) */
+        .sidebar {
+            flex: 0 0 30%;
+            width: 30%;
+            min-width: 320px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            background-color: var(--surface-color);
+            overflow: hidden;
+            /* Ensure chat can scroll inside */
+        }
+
+        /* Right Content: Summary (70%) */
+        .content-panel {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background-color: var(--bg-color);
+        }
+
+        /* Input Elements */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+            /* Don't shrink input area */
+        }
+
+        .url-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            background-color: white;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.15s;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            padding: 0.625rem 1.25rem;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-family: 'Inter', system-ui, sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button.secondary {
+            background-color: white;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        button.secondary:hover {
+            background-color: var(--surface-color);
+            color: var(--text-primary);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        /* History */
+        .history-container {
+            position: relative;
+            flex: 1;
+        }
+
+        #history-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+            margin-top: 4px;
+        }
+
+        #history-dropdown.show {
+            display: block;
+        }
+
+        .history-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item:hover {
+            background-color: var(--surface-color);
+        }
+
+        /* Video Player */
+        #player-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: #000;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+            /* Keep video aspect ratio */
+        }
+
+        /* Chat (Integrated in Sidebar) */
+        .chat-section {
+            flex: 1;
+            /* Take remaining height in sidebar */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        .chat-header {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        #chat-history {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding-right: 0.5rem;
+            /* Space for scrollbar */
+        }
+
+        .chat-message {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .chat-message.user {
+            background-color: var(--accent);
+            align-self: flex-end;
+            color: white;
+            max-width: 90%;
+        }
+
+        .chat-message.assistant {
+            background-color: white;
+            align-self: flex-start;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            max-width: 100%;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        /* Markdown Styles */
+        .markdown-body {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            max-width: 800px;
+            margin: 0 auto;
+            /* Center content in large panel */
+        }
+
+        .markdown-body h2 {
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .markdown-body h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .markdown-body p {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .markdown-body ul {
+            padding-left: 1.25rem;
+        }
+
+        .markdown-body li {
+            margin-bottom: 0.75rem;
+            color: #374151;
+        }
+
+        .markdown-body li:hover {
+            background-color: rgba(37, 99, 235, 0.05);
+            border-radius: 4px;
+            box-shadow: -4px 0 0 var(--accent);
+            padding-left: 4px;
+            margin-left: -4px;
+            cursor: pointer;
+        }
+
+        .markdown-body code {
+            background: var(--surface-color);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+            border: 1px solid var(--border);
+        }
+
+        .timestamp-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+            margin-right: 0.25rem;
+        }
+
+        .timestamp-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 3rem;
+            font-style: italic;
+        }
+
+        .loading::after {
+            content: " .";
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+
+            0%,
+            20% {
+                content: " .";
+            }
+
+            40% {
+                content: " ..";
+            }
+
+            60% {
+                content: " ...";
+            }
+
+            80%,
+            100% {
+                content: " ....";
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Antennas -->
+                <path d="M11 6L16 11M21 6L16 11" stroke="#6B7280" stroke-width="2" stroke-linecap="round" />
+                <!-- TV Body -->
+                <rect x="4" y="10" width="24" height="18" rx="3" fill="#9CA3AF" />
+                <!-- Screen -->
+                <rect x="6" y="12" width="16" height="14" rx="1" fill="#3B82F6" />
+                <!-- Knobs -->
+                <circle cx="25" cy="15" r="1.5" fill="#EF4444" />
+                <circle cx="25" cy="19" r="1.5" fill="#4B5563" />
+                <!-- Legs -->
+                <path d="M8 28L6 31M24 28L26 31" stroke="#6B7280" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            Why Should I Pay For Eightify
+        </h1>
+        <div class="controls-row">
+            <a href="#" onclick="downloadTranscript(); return false;"
+                style="text-decoration: none; color: var(--text-secondary); font-size: 0.875rem;">Download
+                Transcript</a>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Left Sidebar: Input, Video, Chat (30%) -->
+        <div class="sidebar">
+            <div class="input-group">
+                <div class="url-row">
+                    <input type="text" id="videoUrl" placeholder="Paste YouTube URL here...">
+
+                </div>
+
+                <div class="controls-row">
+                    <button onclick="startSummary()" style="flex: 1;">Summarize</button>
+
+                    <div class="history-container">
+                        <button onclick="toggleHistory()" class="secondary" id="history-btn"
+                            style="width: 100%;">History ▼</button>
+                        <div id="history-dropdown">
+                            <div style="padding: 1rem; color: var(--text-secondary); text-align: center;">No history yet
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="player-container">
+                <div style="color: rgba(0,0,0,0.4); font-size: 0.875rem;">Video Player</div>
+            </div>
+
+            <div class="chat-section">
+                <div class="chat-header">Q&A Chat</div>
+                <div id="chat-history">
+                    <div class="chat-message assistant">
+                        Hello! I can answer questions about the video once you generate a summary.
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Ask a question..." onkeypress="handleChatKey(event)">
+                    <button onclick="sendChatMessage()" class="secondary" style="padding: 0.5rem 1rem;">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Content: Summary (70%) -->
+        <div class="content-panel">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div
+                    style="margin-bottom: 2rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 1.5rem; letter-spacing: -0.02em;">
+                    Key Takeaways
+                </div>
+                <div id="summary-content" class="markdown-body">
+                    <div style="text-align: center; color: var(--text-secondary); margin-top: 4rem;">
+                        <p style="font-size: 1.1rem; font-weight: 500;">Ready to summarize</p>
+                        <p style="font-size: 0.9rem; opacity: 0.8;">Paste a YouTube URL broadly to get an instant
+                            summary.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        let player;
+        let currentVideoId = null;
+        let currentTranscript = null;
+        let chatHistory = [];
+        let historyStore = JSON.parse(localStorage.getItem('yt_summary_history') || '[]');
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHistory();
+        });
+
+        // --- YouTube API ---
+        function onYouTubeIframeAPIReady() {
+            // Placeholder
+        }
+
+        function loadVideo(videoId) {
+            currentVideoId = videoId;
+            const container = document.getElementById('player-container');
+            if (player && typeof player.loadVideoById === 'function') {
+                player.loadVideoById(videoId);
+            } else {
+                container.innerHTML = '<div id="yt-player"></div>';
+                player = new YT.Player('yt-player', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: { 'playsinline': 1, 'modestbranding': 1, 'rel': 0 }
+                });
+            }
+        }
+
+        function seekTo(seconds) {
+            if (player && player.seekTo) {
+                player.seekTo(seconds, true);
+                player.playVideo();
+            }
+        }
+
+        // --- Hover Loop Logic ---
+        let loopInterval = null;
+
+        function startLoop(seconds) {
+            if (!player || typeof player.seekTo !== 'function') return;
+
+            stopLoop();
+
+            player.seekTo(seconds, true);
+            player.playVideo();
+
+            const start = seconds;
+            const end = seconds + 5; // Loop 5 seconds
+
+            loopInterval = setInterval(() => {
+                if (player.getCurrentTime() >= end) {
+                    player.seekTo(start, true);
+                }
+            }, 500);
+        }
+
+        function stopLoop() {
+            if (loopInterval) {
+                clearInterval(loopInterval);
+                loopInterval = null;
+            }
+            if (player && typeof player.pauseVideo === 'function') {
+                player.pauseVideo();
+            }
+        }
+
+        // --- Main Logic ---
+        async function startSummary() {
+            const urlInput = document.getElementById('videoUrl');
+            const url = urlInput.value.trim();
+            if (!url) return;
+
+            addToHistory(url);
+
+            const summaryDiv = document.getElementById('summary-content');
+            summaryDiv.innerHTML = '<div class="loading">Analyzing video content...<br>This may take a minute.</div>';
+
+            try {
+                const response = await fetch('{{ url_for("youtube_summarizer.summarize") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+
+                const data = await response.json();
+                currentTranscript = data.transcript;
+
+
+                if (data.error) {
+                    summaryDiv.innerHTML = `<div style="color:red; padding:1rem; text-align:center;">Error: ${data.error}</div>`;
+                    return;
+                }
+
+                loadVideo(data.video_id);
+
+                const renderer = new marked.Renderer();
+                const originalListItem = renderer.listitem.bind(renderer);
+
+                renderer.listitem = (text) => {
+                    // 1. Find timestamp for hover logic
+                    const match = text.match(/\[\[(\d{1,2}):(\d{2})\]\]/);
+                    let attr = '';
+                    if (match) {
+                        const seconds = parseInt(match[1]) * 60 + parseInt(match[2]);
+                        attr = ` onmouseenter="startLoop(${seconds})" onmouseleave="stopLoop()"`;
+                    }
+
+                    // 2. Convert text timestamps to links (inner content)
+                    const content = text.replace(/\[\[(\d{1,2}):(\d{2})\]\]/g, (m, mm, ss) => {
+                        const s = parseInt(mm) * 60 + parseInt(ss);
+                        return `<a href="#" class="timestamp-link" onclick="seekTo(${s}); return false;">${mm}:${ss}</a>`;
+                    });
+
+                    return `<li${attr}>${content}</li>`;
+                };
+
+                // Parse directly (renderer handles timestamps now)
+                summaryDiv.innerHTML = DOMPurify.sanitize(marked.parse(data.summary, { renderer }), {
+                    ADD_ATTR: ['onmouseenter', 'onmouseleave', 'onclick']
+                });
+
+                chatHistory = [];
+                document.getElementById('chat-history').innerHTML = `
+                    <div class="chat-message assistant">
+                        Summary ready! Feel free to ask any questions about this video.
+                    </div>`;
+
+            } catch (e) {
+                summaryDiv.innerHTML = `<div style="color:red; padding:1rem;">Network Error: ${e}</div>`;
+            }
+        }
+
+        // --- Clipboard & History ---
+        async function handlePaste() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('videoUrl').value = text;
+            } catch (err) {
+                console.error('Failed to read clipboard', err);
+                alert('Please allow clipboard access or press Ctrl+V');
+            }
+        }
+
+        function toggleHistory() {
+            const dd = document.getElementById('history-dropdown');
+            dd.classList.toggle('show');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.history-container')) {
+                document.getElementById('history-dropdown').classList.remove('show');
+            }
+        });
+
+        function addToHistory(url) {
+            historyStore = historyStore.filter(item => item !== url);
+            historyStore.unshift(url);
+            if (historyStore.length > 10) historyStore.pop();
+
+            localStorage.setItem('yt_summary_history', JSON.stringify(historyStore));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const dd = document.getElementById('history-dropdown');
+            if (historyStore.length === 0) {
+                dd.innerHTML = '<div style="padding:1rem; color:var(--text-secondary);">No history</div>';
+                return;
+            }
+
+            dd.innerHTML = historyStore.map(url => `
+                <div class="history-item" onclick="loadFromHistory('${url}')">
+                    ${url}
+                </div>
+            `).join('');
+        }
+
+        function loadFromHistory(url) {
+            document.getElementById('videoUrl').value = url;
+            document.getElementById('history-dropdown').classList.remove('show');
+            startSummary();
+        }
+
+        // --- Chat Logic ---
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            const url = document.getElementById('videoUrl').value;
+
+            if (!message) return;
+            if (!url) {
+                alert("Please load a video first.");
+                return;
+            }
+
+            addChatMessage('user', message);
+            input.value = '';
+
+            const loadingId = addChatMessage('assistant', 'Thinking...');
+
+            try {
+                const response = await fetch('{{ url_for("youtube_summarizer.chat") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: url,
+                        message: message,
+                        history: chatHistory
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById(loadingId).remove();
+
+                if (data.error) {
+                    addChatMessage('assistant', `Error: ${data.error}`);
+                } else {
+                    const formattedMarkdown = parseTimestamps(data.answer);
+                    const answerHtml = DOMPurify.sanitize(marked.parse(formattedMarkdown));
+                    addChatMessage('assistant', answerHtml, true);
+
+                    chatHistory.push({ role: 'user', content: message });
+                    chatHistory.push({ role: 'assistant', content: data.answer });
+                }
+
+            } catch (e) {
+                document.getElementById(loadingId).innerText = "Network Error";
+            }
+        }
+
+        function addChatMessage(role, content, isHtml = false) {
+            const historyDiv = document.getElementById('chat-history');
+            const div = document.createElement('div');
+            div.className = `chat-message ${role}`;
+            div.id = 'msg-' + Date.now();
+
+            if (isHtml) {
+                div.innerHTML = content;
+            } else {
+                div.innerText = content;
+            }
+
+            historyDiv.appendChild(div);
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+            return div.id;
+        }
+
+        function handleChatKey(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function parseTimestamps(text) {
+            return text.replace(/\[\[(\d{1,2}):(\d{2})\]\]/g, (match, mm, ss) => {
+                const seconds = parseInt(mm) * 60 + parseInt(ss);
+                return `<a href="#" class="timestamp-link" onclick="seekTo(${seconds}); return false;">${mm}:${ss}</a>`;
+            });
+        }
+
+        function downloadTranscript() {
+            if (!currentTranscript) {
+                alert("Please generate a summary first to download the transcript.");
+                return;
+            }
+            const blob = new Blob([currentTranscript], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'transcript.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+
+</html>

@@ -35,6 +35,15 @@ EXPERIMENTS = [
         'tags': ['Productivity', 'Gmail', 'AI Agent']
     },
     {
+        'id': 'youtube-summarizer',
+        'name': "Don't Pay for Eightify",
+        'description': 'YouTube video summarizer. Turns learning content into concise bullet points.',
+        'icon': '📺',
+        'url': '/experiments/youtube-summarizer/',
+        'status': 'live',
+        'tags': ['Video AI', 'Summarization', 'Learning']
+    },
+    {
         'id': 'coming-soon-1',
         'name': 'Voice Cloner',
         'description': 'Clone any voice with just 3 seconds of audio. Create custom voice profiles.',

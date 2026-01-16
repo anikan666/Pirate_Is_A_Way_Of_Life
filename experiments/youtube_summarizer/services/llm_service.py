@@ -20,19 +20,23 @@ RULES:
    - Ignore "Fluff" (intros, outros, sponsor reads, jokes).
    - If code is spoken, write it out in a code block.
 4. **Tone**: Direct, technical, and educational. No "In this video..." or "The speaker says...". Just valid statements.
+5. **DISTINCTION**: "Key Concepts" and "Actionable Takeaways" MUST be distinct.
+   - **Key Concepts**: Theoretical knowledge, definitions, mental models, 'what' and 'why'.
+   - **Actionable Takeaways**: Concrete steps, practical advice, specific things to do, 'how'. 
+   - DO NOT repeat the same point in both sections.
+6. **STRICT LAYOUT**:
+   - Do NOT create any headers (H1, H2, H3) other than the ones listed in the Structure below.
+   - Do NOT create a header for a single bullet point.
+   - All content must be bullet points.
 
 OUTPUT STRUCTURE:
 # Key Concepts
-- Concept A [[timestamp]]
-- Concept B [[timestamp]]
+- Concept A (Definition/Theory) [[timestamp]]
+- Concept B (Mental Model) [[timestamp]]
 
-# Code / Implementation
-```language
-code here
-```
-
-# actionable Takeaways
-- Step 1 [[timestamp]]
+# Actionable Takeaways
+- Step 1 (Do this) [[timestamp]]
+- Step 2 (Apply that) [[timestamp]]
 """
 
 def summarize_content(transcript_text):

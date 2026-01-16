@@ -7,6 +7,43 @@
    CSS CUSTOM PROPERTIES
    ============================================ */
 
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+/* Charter - Serif */
+@font-face {
+    font-family: 'Charter';
+    src: url('../fonts/charter/charter-regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Charter';
+    src: url('../fonts/charter/charter-bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Charter';
+    src: url('../fonts/charter/charter-italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Charter';
+    src: url('../fonts/charter/charter-bold-italic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
 :root {
     --color-bg: #fafafa;
     --color-surface: #ffffff;
@@ -16,6 +53,9 @@
     --color-text: #171717;
     --color-text-muted: #525252;
     --color-text-subtle: #a3a3a3;
+
+    /* Typography */
+    --font-sans: 'Charter', 'Bitstream Charter', 'Sitka Text', 'Cambria', serif;
 
     --transition-fast: 150ms ease;
     --transition-normal: 200ms ease;
@@ -28,6 +68,10 @@
 
 html {
     scroll-behavior: smooth;
+}
+
+* {
+    font-family: 'Charter', serif !important;
 }
 
 body {
