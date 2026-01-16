@@ -1,4 +1,4 @@
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
+from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 from urllib.parse import urlparse, parse_qs
 import re
 
@@ -38,17 +38,23 @@ def get_video_transcript(video_url):
 
     try:
         # Use static methods directly
-        try:
-            full_transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'en-US'])
-        except (TranscriptsDisabled, NoTranscriptFound):
-             # Fallback to any available (including auto-generated)
-             full_transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        # Helper to fetch transcript
+        def fetch_transcript(vid_id):
+             api = YouTubeTranscriptApi()
+             try:
+                 return api.fetch(vid_id, languages=['en', 'en-US'])
+             except (TranscriptsDisabled, NoTranscriptFound, VideoUnavailable):
+                 # Try default/auto-generated
+                 return api.fetch(vid_id)
+
+        full_transcript = fetch_transcript(video_id)
         
         # Format for LLM: "[MM:SS] Text segment"
         formatted_text_parts = []
         for entry in full_transcript:
-            start_time = entry.get('start')
-            text_content = entry.get('text')
+            # Entry is a FetchedTranscriptSnippet object
+            start_time = entry.start
+            text_content = entry.text
                 
             timestamp = format_timestamp(start_time)
             formatted_text_parts.append(f"[{timestamp}] {text_content}")

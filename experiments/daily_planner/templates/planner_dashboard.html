@@ -8,11 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { 'sans': ['Inter', 'system-ui', 'sans-serif'] },
+                    fontFamily: { 'sans': ['Charter', 'serif'] },
                     colors: {
                         slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 900: '#0f172a' },
                         blue: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }
@@ -22,106 +23,110 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
-
         html,
         body {
             height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
-            font-family: 'Inter', sans-serif;
-        }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
-        }
+            body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                font-family: 'Charter', serif;
+            }
 
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 5px;
+            }
 
-        /* Grid slot styling */
-        .grid-slot {
-            height: 3.5rem;
-            max-height: 3.5rem;
-            transition: all 0.15s ease;
-            position: relative;
-            overflow: hidden;
-        }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 4px;
+            }
 
-        .grid-slot:hover {
-            background: rgba(59, 130, 246, 0.05);
-        }
+            /* Grid slot styling */
+            .grid-slot {
+                height: 3.5rem;
+                max-height: 3.5rem;
+                transition: all 0.15s ease;
+                position: relative;
+                overflow: hidden;
+            }
 
-        .grid-slot.occupied {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        }
+            .grid-slot:hover {
+                background: rgba(59, 130, 246, 0.05);
+            }
 
-        /* Scheduled task styling - prevent overflow */
-        .scheduled-task {
-            max-width: 100%;
-            overflow: hidden;
-        }
+            .grid-slot.occupied {
+                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            }
 
-        .scheduled-task span.truncate {
-            max-width: calc(100% - 4.5rem);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+            /* Scheduled task styling - prevent overflow */
+            .scheduled-task {
+                max-width: 100%;
+                overflow: hidden;
+            }
 
-        /* Task spanning multiple slots */
-        .task-span-1 {
-            grid-column: span 1;
-        }
+            .scheduled-task span.truncate {
+                max-width: calc(100% - 4.5rem);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
 
-        .task-span-2 {
-            grid-column: span 2;
-        }
+            /* Task spanning multiple slots */
+            .task-span-1 {
+                grid-column: span 1;
+            }
 
-        .task-span-3 {
-            grid-column: span 3;
-        }
+            .task-span-2 {
+                grid-column: span 2;
+            }
 
-        .task-span-4 {
-            grid-column: span 4;
-        }
+            .task-span-3 {
+                grid-column: span 3;
+            }
 
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
+            .task-span-4 {
+                grid-column: span 4;
+            }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
+            .toast {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+                z-index: 1000;
+                transition: transform 0.3s ease;
+            }
 
-        .toast.success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
 
-        .toast.error {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
+            .toast.success {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+            }
 
-        details>summary {
-            list-style: none;
-        }
+            .toast.error {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                color: white;
+            }
 
-        details>summary::-webkit-details-marker {
-            display: none;
-        }
+            details>summary {
+                list-style: none;
+            }
+
+            details>summary::-webkit-details-marker {
+                display: none;
+            }
     </style>
 </head>
 

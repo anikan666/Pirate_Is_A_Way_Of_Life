@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 import os
+import traceback
 
 from .services.youtube_service import get_video_transcript
 from .services.llm_service import summarize_content, chat_answer
@@ -17,6 +18,9 @@ def index():
 @youtube_bp.route('/summarize', methods=['POST'])
 def summarize():
     data = request.json
+    if not data:
+        return jsonify({'error': 'Invalid JSON body'}), 400
+
     video_url = data.get('url')
     
     if not video_url:
@@ -49,7 +53,8 @@ def summarize():
         return jsonify({'error': str(e)}), 400
     except Exception as e:
         # Log the full error in production
-        print(f"Error: {e}")
+        print(f"Error processing video {video_url}:")
+        traceback.print_exc()
         return jsonify({'error': 'Failed to process video'}), 500
 
 @youtube_bp.route('/chat', methods=['POST'])
