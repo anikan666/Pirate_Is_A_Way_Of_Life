@@ -22,6 +22,7 @@ GMAIL_LABEL = 'Tasks to be tracked'
 MAX_RESULTS = 20
 EMAIL_BODY_MAX_LENGTH = 2000
 
+from config import Config
 # Calendar
-DEFAULT_TIMEZONE = os.getenv('TIMEZONE', 'Asia/Kolkata')
+DEFAULT_TIMEZONE = Config.TIMEZONE or 'Asia/Kolkata'
 DEFAULT_EVENT_DURATION_MINUTES = 60

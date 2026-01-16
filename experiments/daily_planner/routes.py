@@ -29,15 +29,16 @@ from experiments.daily_planner.config import (
     SCOPES, 
     EMAIL_BODY_MAX_LENGTH
 )
+from config import Config
 
 # Debug Environment Loading
-provider = os.environ.get('LLM_PROVIDER', 'Not Set')
+provider = Config.LLM_PROVIDER
 logger.debug(f"LLM_PROVIDER is currently: '{provider}'")
 if provider == 'gemini':
-    key_status = "Set" if os.environ.get('GEMINI_API_KEY') else "Missing"
+    key_status = "Set" if Config.GEMINI_API_KEY else "Missing"
     logger.debug(f"GEMINI_API_KEY is: {key_status}")
 elif provider == 'anthropic':
-    key_status = "Set" if os.environ.get('ANTHROPIC_API_KEY') else "Missing"
+    key_status = "Set" if Config.ANTHROPIC_API_KEY else "Missing"
     logger.debug(f"ANTHROPIC_API_KEY is: {key_status}")
 
 @daily_planner_bp.route('/')

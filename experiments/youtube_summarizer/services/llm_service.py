@@ -1,10 +1,10 @@
-import os
+from config import Config
 import anthropic
 
-# Initialize client
-client = anthropic.Anthropic(
-    api_key=os.environ.get("ANTHROPIC_API_KEY")
-)
+def get_client():
+    return anthropic.Anthropic(
+        api_key=Config.ANTHROPIC_API_KEY
+    )
 
 SYSTEM_PROMPT = """
 You are an expert note-taker for a Computer Science student.
@@ -44,8 +44,9 @@ def summarize_content(transcript_text):
     Generates a structured summary from the transcript using Claude 3 Haiku.
     """
     try:
+        client = get_client()
         message = client.messages.create(
-            model="claude-3-haiku-20240307",
+            model=Config.LLM_MODEL_NAME,
             max_tokens=4000,
             temperature=0,
             system=SYSTEM_PROMPT,
@@ -89,8 +90,9 @@ Cite timestamps [[MM:SS]] if possible."""
     messages.append({"role": "user", "content": user_question})
 
     try:
+        client = get_client()
         response = client.messages.create(
-            model="claude-3-haiku-20240307",
+            model=Config.LLM_MODEL_NAME,
             max_tokens=1000,
             temperature=0,
             system=system_message,

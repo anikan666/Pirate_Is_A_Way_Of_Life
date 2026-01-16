@@ -3,12 +3,12 @@ import os
 
 from .services.youtube_service import get_video_transcript
 from .services.llm_service import summarize_content, chat_answer
+from core.utils import SimpleLRUCache
 
 youtube_bp = Blueprint('youtube_summarizer', __name__, template_folder='templates', static_folder='static')
 
-# Simple in-memory cache: {video_url: transcript_text}
-# In production, use Redis or a database
-TRANSCRIPT_CACHE = {}
+# Simple LRU Cache
+TRANSCRIPT_CACHE = SimpleLRUCache(capacity=50)
 
 @youtube_bp.route('/')
 def index():
@@ -25,14 +25,15 @@ def summarize():
     try:
         # 1. Get Transcript
         # Check cache first
-        if video_url in TRANSCRIPT_CACHE:
-             transcript_text = TRANSCRIPT_CACHE[video_url]['full_text']
-             video_id = TRANSCRIPT_CACHE[video_url]['video_id']
+        cached_data = TRANSCRIPT_CACHE.get(video_url)
+        if cached_data:
+             transcript_text = cached_data['full_text']
+             video_id = cached_data['video_id']
         else:
             transcript_data = get_video_transcript(video_url)
             transcript_text = transcript_data['full_text']
             video_id = transcript_data['video_id']
-            TRANSCRIPT_CACHE[video_url] = transcript_data
+            TRANSCRIPT_CACHE.set(video_url, transcript_data)
         
         # 2. Generate Summary
         summary = summarize_content(transcript_text)
@@ -63,13 +64,14 @@ def chat():
         
     try:
         # 1. Get Transcript (must use cache or fetch)
-        if video_url in TRANSCRIPT_CACHE:
-             transcript_text = TRANSCRIPT_CACHE[video_url]['full_text']
+        cached_data = TRANSCRIPT_CACHE.get(video_url)
+        if cached_data:
+             transcript_text = cached_data['full_text']
         else:
              # Just in case user reloaded page and cache cleared (server restart)
              transcript_data = get_video_transcript(video_url)
              transcript_text = transcript_data['full_text']
-             TRANSCRIPT_CACHE[video_url] = transcript_data
+             TRANSCRIPT_CACHE.set(video_url, transcript_data)
              
         # 2. Generate Answer
         answer = chat_answer(transcript_text, history, user_message)

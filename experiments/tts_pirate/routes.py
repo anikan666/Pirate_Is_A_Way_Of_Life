@@ -32,10 +32,11 @@ tts_bp = Blueprint('tts', __name__,
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
+from config import Config
 
-BASE_URL = os.environ.get('BASE_URL', '').rstrip('/')
-STORAGE_TYPE = os.environ.get('STORAGE_TYPE', 'local').lower()
-FILE_MAX_AGE_SECONDS = int(os.environ.get('FILE_MAX_AGE_SECONDS', 3600))
+BASE_URL = Config.BASE_URL
+STORAGE_TYPE = Config.STORAGE_TYPE
+FILE_MAX_AGE_SECONDS = Config.FILE_MAX_AGE_SECONDS
 
 # Import storage backend
 from storage import get_storage_backend, LocalStorage

@@ -1,4 +1,4 @@
-from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 from urllib.parse import urlparse, parse_qs
 import re
 
@@ -37,27 +37,18 @@ def get_video_transcript(video_url):
         raise ValueError("Invalid YouTube URL")
 
     try:
-        # Instantiate the API (required for this version)
-        yt_api = YouTubeTranscriptApi()
-        
-        # Fetch transcript directly
-        # fetch(video_id, languages=['en'])
+        # Use static methods directly
         try:
-            full_transcript = yt_api.fetch(video_id, languages=['en', 'en-US'])
-        except Exception:
-             # Fallback to default (usually auto-generated or first available)
-             full_transcript = yt_api.fetch(video_id)
+            full_transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'en-US'])
+        except (TranscriptsDisabled, NoTranscriptFound):
+             # Fallback to any available (including auto-generated)
+             full_transcript = YouTubeTranscriptApi.get_transcript(video_id)
         
         # Format for LLM: "[MM:SS] Text segment"
         formatted_text_parts = []
         for entry in full_transcript:
-            # Handle both objects (this version) and dicts (standard version) just in case
-            if hasattr(entry, 'start'):
-                start_time = entry.start
-                text_content = entry.text
-            else:
-                start_time = entry['start']
-                text_content = entry['text']
+            start_time = entry.get('start')
+            text_content = entry.get('text')
                 
             timestamp = format_timestamp(start_time)
             formatted_text_parts.append(f"[{timestamp}] {text_content}")
@@ -65,8 +56,12 @@ def get_video_transcript(video_url):
         return {
             "video_id": video_id,
             "full_text": "\n".join(formatted_text_parts),
-            "segments": full_transcript # valid for frontend "click to seek" if needed later
+            "segments": full_transcript
         }
 
+    except TranscriptsDisabled:
+        raise ValueError("Transcripts are disabled for this video.")
+    except NoTranscriptFound:
+        raise ValueError("No transcript found for this video.")
     except Exception as e:
         raise Exception(f"Could not retrieve transcript: {str(e)}")

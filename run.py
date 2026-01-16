@@ -4,24 +4,37 @@ Main entry point that registers all experiment blueprints
 """
 
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
-load_dotenv()
+from config import Config
+import logging
+
+# Configure Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 # Get the base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def create_app():
     """Application factory"""
+    # Validate Configuration
+    Config.validate()
+
     app = Flask(__name__, 
                 template_folder=os.path.join(BASE_DIR, 'core', 'templates'),
                 static_folder=os.path.join(BASE_DIR, 'core', 'static'))
+
+    # Middleware to handle proxy headers (for Render/Heroku HTTPS)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
     
     # Secret key for sessions
-    app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_super_secret_pirate')
+    app.secret_key = Config.SECRET_KEY
     
     # CORS Configuration
     CORS(app, resources={
