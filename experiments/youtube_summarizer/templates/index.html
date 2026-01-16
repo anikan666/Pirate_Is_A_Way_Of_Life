@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don't Pay for Eightify</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-color);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-left: 1rem;
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 70px);
+            /* Adjust based on header height */
+        }
+
+        /* Left Panel - Video */
+        .video-panel {
+            flex: 1;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            min-width: 400px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        #player-container {
+            flex: 1;
+            background-color: black;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Right Panel - Content */
+        .content-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 400px;
+            background-color: var(--card-bg);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Markdown Styles */
+        .markdown-body h2 {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            color: #fff;
+        }
+
+        .markdown-body h3 {
+            color: #e2e8f0;
+            margin-top: 1rem;
+        }
+
+        .markdown-body p {
+            line-height: 1.7;
+            color: #cbd5e1;
+        }
+
+        .markdown-body ul {
+            padding-left: 1.5rem;
+        }
+
+        .markdown-body li {
+            margin-bottom: 0.5rem;
+        }
+
+        .markdown-body code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .markdown-body pre {
+            background: #0f172a;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .timestamp-link {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            font-family: monospace;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
+        .timestamp-link:hover {
+            text-decoration: underline;
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        /* Chat Styles */
+        #chat-history {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .chat-message {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            max-width: 80%;
+        }
+
+        .chat-message.user {
+            background-color: var(--accent);
+            align-self: flex-end;
+            color: white;
+        }
+
+        .chat-message.assistant {
+            background-color: rgba(255, 255, 255, 0.05);
+            align-self: flex-start;
+            border: 1px solid var(--border);
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div style="display:flex; align-items:baseline;">
+            <h1>Don't Pay for Eightify</h1>
+            <span class="subtitle">Open Source Learning Companion</span>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Left Panel -->
+        <div class="video-panel">
+            <div class="input-group">
+                <input type="text" id="videoUrl" placeholder="Paste YouTube URL...">
+                <button onclick="startSummary()">Go</button>
+            </div>
+            <div id="player-container">
+                <div style="color: var(--text-secondary)">No video loaded</div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="content-panel">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('summary')">Summary</div>
+                <div class="tab" onclick="switchTab('chat')">Q&A Chat</div>
+            </div>
+
+            <div id="summary-tab" class="tab-content active">
+                <div id="summary-content" class="markdown-body">
+                    <div style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">
+                        Enter a video URL to generate a summary.
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-tab" class="tab-content" style="display: none; flex-direction: column;">
+                <div id="chat-history"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Ask about the video..."
+                        onkeypress="handleChatKey(event)">
+                    <button onclick="sendChatMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        let player;
+        let currentVideoId = null;
+        let chatHistory = [];
+
+        // --- YouTube API ---
+        function onYouTubeIframeAPIReady() {
+            // Placeholder: player will be created when we have an ID
+        }
+
+        function loadVideo(videoId) {
+            currentVideoId = videoId;
+            const container = document.getElementById('player-container');
+            container.innerHTML = '<div id="yt-player"></div>';
+
+            player = new YT.Player('yt-player', {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    'playsinline': 1
+                }
+            });
+        }
+
+        function seekTo(seconds) {
+            if (player && player.seekTo) {
+                player.seekTo(seconds, true);
+                player.playVideo();
+            }
+        }
+
+        // --- Tabs ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => {
+                c.classList.remove('active');
+                c.style.display = 'none';
+            });
+
+            if (tabName === 'summary') {
+                document.querySelector('.tab:first-child').classList.add('active');
+                document.getElementById('summary-tab').classList.add('active');
+                document.getElementById('summary-tab').style.display = 'block';
+            } else {
+                document.querySelector('.tab:last-child').classList.add('active');
+                document.getElementById('chat-tab').classList.add('active');
+                document.getElementById('chat-tab').style.display = 'flex'; // Chat needs flex
+            }
+        }
+
+        // --- Main Logic ---
+        async function startSummary() {
+            const url = document.getElementById('videoUrl').value;
+            if (!url) return;
+
+            const summaryDiv = document.getElementById('summary-content');
+            summaryDiv.innerHTML = '<div class="loading">Extraction in progress...<br>Fetching transcript & generating notes.</div>';
+
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    summaryDiv.innerHTML = `<div style="color:red">Error: ${data.error}</div>`;
+                    return;
+                }
+
+                // Load Video
+                loadVideo(data.video_id);
+
+                // Render Summary with timestamp links
+                const rawMarkdown = data.summary;
+                const formattedMarkdown = parseTimestamps(rawMarkdown);
+                summaryDiv.innerHTML = DOMPurify.sanitize(marked.parse(formattedMarkdown));
+
+                // Clear chat
+                chatHistory = [];
+                document.getElementById('chat-history').innerHTML = '';
+
+            } catch (e) {
+                summaryDiv.innerHTML = `<div style="color:red">Network Error: ${e}</div>`;
+            }
+        }
+
+        // --- Chat Logic ---
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            const url = document.getElementById('videoUrl').value;
+
+            if (!message || !url) return;
+
+            // Add user message to UI
+            addChatMessage('user', message);
+            input.value = '';
+
+            // Loading assistant message
+            const loadingId = addChatMessage('assistant', 'Thinking...');
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: url,
+                        message: message,
+                        history: chatHistory
+                    })
+                });
+
+                const data = await response.json();
+
+                // Remove loading, add real answer
+                document.getElementById(loadingId).remove();
+
+                if (data.error) {
+                    addChatMessage('assistant', `Error: ${data.error}`);
+                } else {
+                    const formattedAnswer = parseTimestamps(data.answer);
+                    // We render markdown for chat answers too
+                    const answerHtml = DOMPurify.sanitize(marked.parse(formattedAnswer));
+                    addChatMessage('assistant', answerHtml, true); // true = isHtml
+
+                    // Update valid history
+                    chatHistory.push({ role: 'user', content: message });
+                    chatHistory.push({ role: 'assistant', content: data.answer });
+                }
+
+            } catch (e) {
+                document.getElementById(loadingId).innerText = "Network Error";
+            }
+        }
+
+        function addChatMessage(role, content, isHtml = false) {
+            const historyDiv = document.getElementById('chat-history');
+            const div = document.createElement('div');
+            div.className = `chat-message ${role}`;
+            div.id = 'msg-' + Date.now();
+
+            if (isHtml) {
+                div.innerHTML = content;
+            } else {
+                div.innerText = content;
+            }
+
+            historyDiv.appendChild(div);
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+            return div.id;
+        }
+
+        function handleChatKey(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        // --- Utilities ---
+        function parseTimestamps(text) {
+            // Regex to find [[MM:SS]] and replace with <a ...>
+            return text.replace(/\[\[(\d{1,2}):(\d{2})\]\]/g, (match, mm, ss) => {
+                const seconds = parseInt(mm) * 60 + parseInt(ss);
+                return `<a href="#" class="timestamp-link" onclick="seekTo(${seconds}); return false;">${mm}:${ss}</a>`;
+            });
+        }
+    </script>
+</body>
+
+</html>

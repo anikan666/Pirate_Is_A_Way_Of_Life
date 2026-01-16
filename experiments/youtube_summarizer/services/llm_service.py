@@ -1,0 +1,97 @@
+import os
+import anthropic
+
+# Initialize client
+client = anthropic.Anthropic(
+    api_key=os.environ.get("ANTHROPIC_API_KEY")
+)
+
+SYSTEM_PROMPT = """
+You are an expert note-taker for a Computer Science student.
+Your goal is to extract the specialized knowledge, code snippets, and exact definitions from the video content.
+
+RULES:
+1. **Format**: Use Markdown. Use clear H2 and H3 headers.
+2. **Timestamps**: You MUST cite the timestamp for every key point using the format `[[MM:SS]]`. 
+   - Example: "The `useEffect` hook runs after every render by default [[04:20]]."
+   - Place timestamps at the end of the sentence or bullet point.
+3. **Content**:
+   - Focus on "How-to", definitions, and code.
+   - Ignore "Fluff" (intros, outros, sponsor reads, jokes).
+   - If code is spoken, write it out in a code block.
+4. **Tone**: Direct, technical, and educational. No "In this video..." or "The speaker says...". Just valid statements.
+
+OUTPUT STRUCTURE:
+# Key Concepts
+- Concept A [[timestamp]]
+- Concept B [[timestamp]]
+
+# Code / Implementation
+```language
+code here
+```
+
+# actionable Takeaways
+- Step 1 [[timestamp]]
+"""
+
+def summarize_content(transcript_text):
+    """
+    Generates a structured summary from the transcript using Claude 3 Haiku.
+    """
+    try:
+        message = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=4000,
+            temperature=0,
+            system=SYSTEM_PROMPT,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Here is the transcript of the video:\n\n{transcript_text}"
+                }
+            ]
+        )
+        return message.content[0].text
+    except Exception as e:
+        return f"Error generating summary: {str(e)}"
+
+def chat_answer(transcript_text, chat_history, user_question):
+    """
+    Answers a user question based on the video transcript.
+    """
+    # Build context from history
+    messages = []
+    
+    # Add previous history (naive implementation: just append last few turns)
+    # Ideally, we should summarize history if it gets too long, but with 200k context, we are fine for now.
+    for msg in chat_history:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    
+    # Add current question with transcript context
+    # We re-send the transcript every time to keep it stateless and robust
+    # Optimally, we would cache the system prompt prefix
+    
+    system_message = f"""You are a helpful assistant answering questions about a YouTube video.
+Here is the transcript of the video:
+<transcript>
+{transcript_text}
+</transcript>
+
+Answer the user's question based ONLY on the transcript. 
+If the answer is not in the transcript, say "I couldn't find that information in the video."
+Cite timestamps [[MM:SS]] if possible."""
+
+    messages.append({"role": "user", "content": user_question})
+
+    try:
+        response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=1000,
+            temperature=0,
+            system=system_message,
+            messages=messages
+        )
+        return response.content[0].text
+    except Exception as e:
+        return f"Error generating answer: {str(e)}"
