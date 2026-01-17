@@ -3,6 +3,7 @@ Authentication module for Daily Planner.
 Handles OAuth2 flow with Google (login, callback, logout, check_auth).
 """
 import os
+import json
 from flask import redirect, url_for, session, request
 from google_auth_oauthlib.flow import Flow
 
@@ -22,24 +23,53 @@ if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG')
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 
+def get_flow(redirect_uri=None, state=None):
+    """
+    Create a Flow instance from either:
+    1. GOOGLE_CREDENTIALS_JSON environment variable (Production)
+    2. credentials.json file (Development)
+    """
+    # Option 1: Env Var (Production)
+    if os.environ.get('GOOGLE_CREDENTIALS_JSON'):
+        try:
+            client_config = json.loads(os.environ['GOOGLE_CREDENTIALS_JSON'])
+            return Flow.from_client_config(
+                client_config,
+                scopes=SCOPES,
+                redirect_uri=redirect_uri,
+                state=state
+            )
+        except json.JSONDecodeError:
+             raise ValueError("GOOGLE_CREDENTIALS_JSON env var contains invalid JSON.")
+    
+    # Option 2: File (Development)
+    if os.path.exists(CLIENT_SECRETS_FILE):
+        return Flow.from_client_secrets_file(
+            CLIENT_SECRETS_FILE,
+            scopes=SCOPES,
+            redirect_uri=redirect_uri,
+            state=state
+        )
+    
+    raise FileNotFoundError("Neither GOOGLE_CREDENTIALS_JSON env var nor credentials.json file found.")
+
+
 def register_auth_routes(bp):
     """Register authentication routes on the given blueprint."""
     
     @bp.route('/login')
     def login():
         """Initiate OAuth2 login flow with Google."""
-        if not os.path.exists(CLIENT_SECRETS_FILE):
-            return "Error: credentials.json not found in project root. Please follow the instructions to download it from Google Cloud Console."
-
         redirect_uri = url_for('daily_planner.callback', _external=True)
+        
+        # Debug info for redirect URI mismatch issues
         print(f"\n[DEBUG] OAuth Redirect URI: {redirect_uri}\nMake sure this EXACT URL is in your Google Cloud Console Authorized Redirect URIs.\n")
 
-        flow = Flow.from_client_secrets_file(
-            CLIENT_SECRETS_FILE,
-            scopes=SCOPES,
-            redirect_uri=redirect_uri
-        )
-        
+        try:
+            flow = get_flow(redirect_uri=redirect_uri)
+        except (FileNotFoundError, ValueError) as e:
+            return f"Authentication Error: {str(e)}", 500
+
         authorization_url, state = flow.authorization_url(
             access_type='offline',
             include_granted_scopes='true',
@@ -54,12 +84,13 @@ def register_auth_routes(bp):
         """Handle OAuth2 callback from Google."""
         state = session.get('state')
         
-        flow = Flow.from_client_secrets_file(
-            CLIENT_SECRETS_FILE,
-            scopes=SCOPES,
-            state=state,
-            redirect_uri=url_for('daily_planner.callback', _external=True)
-        )
+        try:
+            flow = get_flow(
+                redirect_uri=url_for('daily_planner.callback', _external=True),
+                state=state
+            )
+        except (FileNotFoundError, ValueError) as e:
+            return f"Authentication Error: {str(e)}", 500
         
         flow.fetch_token(authorization_response=request.url)
         credentials = flow.credentials

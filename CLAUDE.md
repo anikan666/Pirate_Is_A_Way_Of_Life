@@ -175,6 +175,8 @@ When designing experiment UIs for embed mode:
 - `SECRET_KEY`: (Required in production)
 - `ANTHROPIC_API_KEY`: (Required for AI features)
 - `FLASK_ENV`: set to `production`
+- `GOOGLE_CREDENTIALS_JSON`: (Required for Daily Planner) The content of `credentials.json`
+
 
 
 
