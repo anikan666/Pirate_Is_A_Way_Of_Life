@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: pirate-lab
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn "run:create_app()"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.5
+      - key: WEBSITES_PORT
+        value: 5000
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false

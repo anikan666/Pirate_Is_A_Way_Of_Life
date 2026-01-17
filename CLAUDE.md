@@ -159,14 +159,24 @@ When designing experiment UIs for embed mode:
 ## Deployment
 
 ### Render.com Setup
-1. Connect GitHub repo
-2. Build command: `pip install -r requirements.txt`
-3. Start command: `gunicorn app:app`
-4. Environment: Python 3.11+
+1. **Pre-deployment**:
+   - Run `npm run build:css` locally
+   - Commit the generated `core/static/css/style.css` file
+   - Push all changes to GitHub
+
+2. **Deploy on Render**:
+   - Create a New **Blueprint Instance** (if using `render.yaml`) OR **Web Service**
+   - Connect your GitHub repository
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn "run:create_app()"`
+   - **Environment**: Python 3.11+
 
 ### Environment Variables
-- `FLASK_ENV`: production/development
-- (Add more as experiments require)
+- `SECRET_KEY`: (Required in production)
+- `ANTHROPIC_API_KEY`: (Required for AI features)
+- `FLASK_ENV`: set to `production`
+
+
 
 ## Session History
 
