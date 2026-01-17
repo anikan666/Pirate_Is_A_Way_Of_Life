@@ -49,10 +49,12 @@ def generate_with_anthropic(prompt: str, system_prompt: str = "You are an elite 
     if not api_key:
         raise Exception("ANTHROPIC_API_KEY not found in environment variables.")
     
+    from config import Config
+    
     client = anthropic.Anthropic(api_key=api_key)
     
     message = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model=Config.LLM_MODEL_NAME,
         max_tokens=4096,
         temperature=0,
         system=system_prompt,

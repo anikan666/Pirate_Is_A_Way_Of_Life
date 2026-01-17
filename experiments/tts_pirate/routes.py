@@ -72,9 +72,12 @@ def cleanup_old_files():
         time.sleep(300)
 
 
-# Start cleanup thread
-cleanup_thread = threading.Thread(target=cleanup_old_files, daemon=True)
-cleanup_thread.start()
+
+def start_cleanup_task():
+    """Start the auto-cleanup background thread"""
+    cleanup_thread = threading.Thread(target=cleanup_old_files, daemon=True)
+    cleanup_thread.start()
+
 
 # =============================================================================
 # INPUT VALIDATION HELPERS

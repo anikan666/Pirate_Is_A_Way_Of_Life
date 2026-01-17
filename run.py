@@ -50,15 +50,22 @@ def create_app():
     app.register_blueprint(core_bp)
     
     # Register Experiment Blueprints
-    from experiments.tts_pirate.routes import tts_bp
+    from experiments.tts_pirate.routes import tts_bp, start_cleanup_task
     app.register_blueprint(tts_bp, url_prefix='/experiments/tts')
+    
+    # Start background tasks
+    try:
+        start_cleanup_task()
+    except RuntimeError:
+        # Ignore if thread already started (though in this new func it's fresh)
+        pass
     
     # Register Daily Planner Blueprint
     from experiments.daily_planner.routes import daily_planner_bp
     app.register_blueprint(daily_planner_bp, url_prefix='/experiments/planner')
 
     # Register YouTube Summarizer Blueprint
-    from experiments.youtube_summarizer.app import youtube_bp
+    from experiments.youtube_summarizer.routes import youtube_bp
     app.register_blueprint(youtube_bp, url_prefix='/experiments/youtube-summarizer')
     
     return app

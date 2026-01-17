@@ -1,0 +1,280 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Anish Sood Portfolio - Minimalist Editorial Theme
+ * Clean, sophisticated layout with strong typography
+ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES
+   ============================================ */
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+/* Charter - Serif */
+@font-face {
+    font-family: 'Charter';
+    src: url('../fonts/charter/charter-regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Charter';
+    src: url('../fonts/charter/charter-bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Charter';
+    src: url('../fonts/charter/charter-italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Charter';
+    src: url('../fonts/charter/charter-bold-italic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
+:root {
+    --color-bg: #ffffff;
+    /* Pure white for editorial feel */
+    --color-surface: #ffffff;
+    --color-text: #171717;
+    --color-text-muted: #525252;
+    --color-text-subtle: #a3a3a3;
+    --color-border: #e5e5e5;
+
+    /* Typography */
+    --font-serif: 'Charter', 'Bitstream Charter', 'Sitka Text', 'Cambria', serif;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-serif);
+    /* Default to Serif */
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    /* Regular weight for elegance */
+    letter-spacing: -0.01em;
+}
+
+/* Links */
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s ease;
+}
+
+/* Utility for Sans-Serif elements (Labels, Tags) */
+.font-sans {
+    font-family: var(--font-sans);
+}
+
+.font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+
+/* ============================================
+   LAYOUT & GRID
+   ============================================ */
+
+/* Custom Scrollbar - Minimal */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a3a3a3;
+}
+
+
+/* ============================================
+   EXPERIMENT CARDS (Editorial Style)
+   ============================================ */
+
+/* Remove default button styles if any */
+button:focus {
+    outline: none;
+}
+
+/* Experiment Cards */
+.experiment-card {
+    /* No borders or shadows by default for the container */
+}
+
+/* Image/Icon Placeholder area */
+.experiment-card .aspect-\[4\/3\] {
+    background-color: #f5f5f5;
+    /* Very light cool gray */
+    transition: background-color 0.3s ease;
+}
+
+.experiment-card:hover .aspect-\[4\/3\] {
+    background-color: #f0f0f0;
+    /* Slightly darker on hover */
+}
+
+
+/* ============================================
+   ANIMATIONS & TRANSITIONS
+   ============================================ */
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ============================================
+   MODAL STYLES (Keep existing functional styles)
+   ============================================ */
+
+#experiment-modal {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s linear 0.2s, opacity 0.2s ease;
+}
+
+#experiment-modal.modal-open {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+#experiment-modal.modal-open #modal-container {
+    transform: scale(1);
+    opacity: 1;
+}
+
+#modal-loading {
+    transition: opacity 0.2s ease;
+}
+
+#modal-loading.loaded {
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    #modal-container {
+        border-radius: 0.75rem;
+        height: 90vh;
+    }
+}
+
+
+/* ============================================
+   MIKKI STUDIO STRUCTURE
+   ============================================ */
+
+#navcontainer {
+    /* Main Sidebar Container */
+    position: relative;
+    /* Often used for fixed/sticky behaviors */
+}
+
+/* Sidebar Name Link */
+.name h2 {
+    font-size: 0.875rem;
+    /* 14px equivalent */
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: normal;
+}
+
+/* Sidebar Nav Links */
+.nav h2 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--color-text-muted);
+}
+
+.nav h2 a:hover {
+    color: var(--color-text);
+}
+
+/* About Bio Text */
+.about .bio {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+}
+
+/* Expanded Content Two-Column Layout */
+.diptych {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .diptych {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+}

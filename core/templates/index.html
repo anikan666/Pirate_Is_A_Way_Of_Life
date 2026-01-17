@@ -16,37 +16,13 @@
         rel="stylesheet">
 
     <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'sans': ['Charter', 'Inter', 'system-ui', 'sans-serif'],
-                        'mono': ['Charter', 'JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        'lab': {
-                            'bg': '#fafafa',
-                            'surface': '#ffffff',
-                            'card': '#ffffff',
-                            'border': '#e5e5e5',
-                            'border-light': '#d4d4d4',
-                            'text': '#171717',
-                            'text-muted': '#525252',
-                            'text-subtle': '#a3a3a3',
-                            'accent': '#171717',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Tailwind CSS (Built via npm) -->
+
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body class="bg-lab-bg min-h-screen font-sans text-lab-text antialiased">
+<body class="bg-lab-bg min-h-screen font-serif text-lab-text antialiased">
 
     <!-- Subtle Background -->
     <div class="fixed inset-0 pointer-events-none">
@@ -74,7 +50,8 @@
                             class="hover:text-lab-text transition-colors">Book a slot</a>
                     </h2>
                     <h2 class="text-sm font-medium text-lab-text-muted">
-                        <a href="#" target="_blank" class="hover:text-lab-text transition-colors">Resume</a>
+                        <a href="#" onclick="toggleBio(); return false;"
+                            class="hover:text-lab-text transition-colors">Resume</a>
                     </h2>
                     <h2 class="text-sm font-medium text-lab-text-muted">
                         <a href="#experiments" class="hover:text-lab-text transition-colors">Experiments</a>
@@ -83,7 +60,15 @@
 
                 <!-- Footer in Sidebar for Desktop -->
                 <div class="hidden md:block text-[10px] text-lab-text-subtle mt-auto">
-                    <p>Not built with Lovable</p>
+                    <p>
+                        Not built with Lovable
+                        <br>
+                        *Haiku on the web
+                        <br>
+                        Ollama runs locally
+                        <br>
+                        Cheap, though not Opus
+                    </p>
                     <p class="mt-0.5">&copy; 2026 Anish Sood</p>
                 </div>
             </section>
@@ -404,6 +389,13 @@
                                         <span>Crocheting</span>
                                     </div>
                                 </div>
+                                <div>
+                                    <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">
+                                        <a href="https://drive.google.com/file/d/1_TGaupX1ran7nWxYM9pWNQTfzofE-Qh9/view?usp=sharing"
+                                            target="_blank" class="hover:text-lab-text transition-colors">Download
+                                            resume ↗</a>
+                                    </h2>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -414,8 +406,8 @@
             <section id="experiments">
                 <div class="mb-6 max-w-8xl">
                     <h2 class="text-2xl font-serif text-lab-text mb-1">Experiments</h2>
-                    <p class="text-base md:text-lg text-lab-text leading-relaxed font-serif italic text-lab-text-muted">
-                        AI products I have built for myself using open source & EDGE alternatives of my
+                    <p class="text-base md:text-lg leading-relaxed font-serif text-lab-text-muted">
+                        AI products I have built for myself using Open-Source* & EDGE alternatives of my
                         favourite apps. It helps me see what is defensible and what is replaceable.
                     </p>
                 </div>
@@ -475,6 +467,10 @@
         <footer class="md:hidden py-8 border-t border-lab-border mt-8 mb-4 col-span-1">
             <p class="text-xs text-lab-text-subtle">
                 Not built with Lovable
+                <br>
+                *Online version of these use Anthropic's API
+                <br>
+                Offline version of these use Ollama API
             </p>
             <p class="text-xs text-lab-text-subtle mt-1">
                 &copy; 2026 Anish Sood

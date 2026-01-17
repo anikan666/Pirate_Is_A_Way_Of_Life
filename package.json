@@ -1,0 +1,26 @@
+{
+  "name": "text-to-speech",
+  "version": "1.0.0",
+  "description": "A personal laboratory for building and shipping experimental AI projects. Built with Flask, featuring a modular architecture where each experiment lives as an independent Blueprint.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "tailwindcss -i ./core/static/css/input.css -o ./core/static/css/style.css --minify",
+    "watch:css": "tailwindcss -i ./core/static/css/input.css -o ./core/static/css/style.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anikan666/Pirate_Is_A_Way_Of_Life.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/anikan666/Pirate_Is_A_Way_Of_Life/issues"
+  },
+  "homepage": "https://github.com/anikan666/Pirate_Is_A_Way_Of_Life#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
