@@ -54,424 +54,430 @@
     </div>
 
     <!-- Main Container -->
-    <div class="relative z-10 max-w-5xl mx-auto px-6 py-16 md:py-24">
+    <div
+        class="relative z-10 w-full max-w-[1600px] mx-auto px-6 pb-8 md:pb-16 pt-4 md:pt-6 grid grid-cols-1 md:grid-cols-12 gap-y-12 md:gap-x-12">
 
-        <!-- Header -->
-        <header class="mb-20">
-            <nav class="flex items-center justify-between mb-16">
-                <div class="flex items-center gap-3">
-                    <span class="text-lg font-medium tracking-tight">Anish Sood</span>
+        <!-- Left Sidebar (Name + Nav) -->
+        <div class="md:col-span-2 md:sticky md:top-0 h-[calc(100vh-5rem)]">
+            <section id="navcontainer" class="flex flex-col gap-2 h-full">
+                <div class="name">
+                    <h2 class="text-sm font-bold tracking-tight text-lab-text">
+                        <a href="/" class="hover:text-lab-text-muted transition-colors">Anish Sood</a>
+                    </h2>
                 </div>
-                <div class="flex items-center gap-8">
-                    <a href="#experiments"
-                        class="text-sm text-lab-text-muted hover:text-lab-text transition-colors duration-200">Experiments</a>
-                    <a href="#"
-                        class="text-sm text-lab-text-muted hover:text-lab-text transition-colors duration-200">Resume</a>
-                    <a href="https://github.com" target="_blank"
-                        class="text-sm text-lab-text-muted hover:text-lab-text transition-colors duration-200">GitHub</a>
+                <div class="nav flex flex-col gap-0.5">
+                    <h2 class="text-sm font-medium text-lab-text-muted">
+                        <a href="mailto:anish@example.com" class="hover:text-lab-text transition-colors">Email</a>
+                    </h2>
+                    <h2 class="text-sm font-medium text-lab-text-muted">
+                        <a href="https://cal.com/anishsood" target="_blank"
+                            class="hover:text-lab-text transition-colors">Book a slot</a>
+                    </h2>
+                    <h2 class="text-sm font-medium text-lab-text-muted">
+                        <a href="#" target="_blank" class="hover:text-lab-text transition-colors">Resume</a>
+                    </h2>
+                    <h2 class="text-sm font-medium text-lab-text-muted">
+                        <a href="#experiments" class="hover:text-lab-text transition-colors">Experiments</a>
+                    </h2>
                 </div>
-            </nav>
 
-            <!-- Hero Section -->
-            <div>
-                <p class="text-sm font-mono text-lab-text-subtle uppercase tracking-widest mb-4 lg:mb-2">About Me</p>
-                <div class="relative">
-                    <div id="bio-container"
-                        class="text-sm text-lab-text-muted leading-relaxed transition-all duration-500 ease-in-out">
-                        <span id="bio-text">"Anish helps fix things that break and scales things that are not broken."
-                            <br><br>
-                            Anish is a strategist, operator, and consultant. His expertise has always been helping
-                            people think big ideas and then go from ideas to execution. He has managed crisis war rooms
-                            during COVID, built strategy & impact practices for VC funds, and solved growth & operations
-                            for startups.</span>
-                        <button id="read-more-btn" onclick="toggleBio()"
-                            class="inline-flex items-center gap-1 text-lab-text-muted hover:text-lab-text transition-colors border-b border-transparent hover:border-lab-text-muted ml-1 cursor-pointer">
-                            Read more
-                        </button>
-                    </div>
+                <!-- Footer in Sidebar for Desktop -->
+                <div class="hidden md:block text-[10px] text-lab-text-subtle mt-auto">
+                    <p>Not built with Lovable</p>
+                    <p class="mt-0.5">&copy; 2026 Anish Sood</p>
+                </div>
+            </section>
+        </div>
 
-                    <div id="bio-expanded-content"
-                        class="hidden opacity-0 transition-opacity duration-300 mt-6 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-lab-text-muted">
-                        <!-- Content will be populated here similar to Mikki studio if provided, 
-                             or this can serve as the extended bio area -->
-                        <div>
-                            <h4 class="font-medium text-lab-text mb-4">Impact</h4>
-                            <ul class="space-y-4">
-                                <li>
-                                    <a href="https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Industry%20Standards%20Note%20on%20BRSR%20with%20Annexure%20%281%29.pdf"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Contributor,
-                                        India's CEPA Methodology</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Defined national spend-based
-                                        carbon accounting standards with SEBI/NSE</p>
-                                </li>
-                                <li>
-                                    <a href="https://iris.thegiin.org/webinar/launch-webinar-navigating-impact-theme-climate-adaptation-and-resilience/"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Global
-                                        Standard Setter, GIIN IRIS+</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Spearheaded the "Climate
-                                        Adaptation & Resilience" impact theme used by 3,000+ investors globally</p>
-                                </li>
-                                <li>
-                                    <a href="https://carbonaccountingfinancials.com/en/newsitem/pcaf-announces-stepchange-as-first-regional-partner-to-support-the-indian-financial-market"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">PCAF India
-                                        Chapter</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">First regional partnership to
-                                        bring global carbon accounting standards to Indian finance</p>
-                                </li>
-                                <li>
-                                    <a href="https://bnz.becknprotocol.io/wp-content/uploads/2025/07/BNZ-Report-2024.pdf.pdf"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Climate Data
-                                        Exchange</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Collaborated with FIDE (Beckn)
-                                        to build open protocols for climate data networks</p>
-                                </li>
-                                <li>
-                                    <a href="https://dymez6ioe12by.cloudfront.net/media/wp-content/uploads/2025/05/26125748/1822653646671481_202501300619risk_assesment_playbook.pdf"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Market
-                                        Expansion</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Developed the Climate Risk
-                                        Assessment Playbook for several central banks</p>
-                                </li>
-                                <li>
-                                    <a href="https://www.au.bank.in/press-releases_25-11-final-PR-IFC-partnership-revised.pdf"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Market
-                                        Pioneer, Climate Risk Assessment</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Led India's first-ever NBFC
-                                        climate risk deal (AU Small Finance Bank / IFC)</p>
-                                </li>
-                                <li>
-                                    <a href="https://www.unepfi.org/regions/asia-pacific/asia-pacific-regional-roundtable-2025/"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">UNEP-FI
-                                        Regional Partner</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Strategic partnership with
-                                        United Nations Environment Programme Finance Initiative</p>
-                                </li>
-                                <li>
-                                    <a href="https://ssir.org/articles/entry/deep-listening-for-impact-measurement"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Pioneer,
-                                        AI-Driven Impact Measurement</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Deployed early NLP models for
-                                        end user feedback; published in Stanford Social Innovation Review</p>
-                                </li>
-                                <li>
-                                    <a href="https://drr.open-contracting.in/en" target="_blank"
-                                        class="font-medium text-lab-text hover:underline">Disaster Resilience</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Funded platform providing
-                                        resilience to 271M citizens for Omidyar Network India</p>
-                                </li>
-                                <li>
-                                    <a href="https://it.telangana.gov.in/initiatives/emerging-technologies/"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Responsible AI
-                                        Governance</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Nominated to Emerging
-                                        Technologies Board Telangana - RAI Board</p>
-                                </li>
-                                <li>
-                                    <a href="https://www.clintonhealthaccess.org/wp-content/uploads/2021/09/CHAI-Annual-Report-2020-digital.pdf"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Crisis Task
-                                        Force Lead</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Directed Covid-19 response for
-                                        1,000+ hospitals in Maharashtra</p>
-                                </li>
-                                <li>
-                                    <a href="https://drive.google.com/file/d/1CBre_kTYetxS0MgUAYpz08gb0bJov3sm/view?usp=sharing"
-                                        target="_blank" class="font-medium text-lab-text hover:underline">Founding Lead,
-                                        Climate-Tech Practice</a>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Authored investment thesis and
-                                        built portfolio at Omidyar Network</p>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Fast-Track Promotion, StepChange</span>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Senior Lead to Director in 4
-                                        months</p>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Performance Offer, McKinsey & Co.</span>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Secured full-time TMT Practice
-                                        role based on independent delivery</p>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Fast-Track Promotion, Kearney</span>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Promoted to Consultant ahead of
-                                        cycle</p>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Fast-Track Promotion, Citi</span>
-                                    <p class="text-sm italic text-lab-text-muted mt-0.5">Only analyst promoted to
-                                        Associate in first review cycle</p>
-                                </li>
-                            </ul>
+        <!-- Right Main Content -->
+        <div class="md:col-span-10 flex flex-col gap-16 md:pl-4">
+
+            <!-- About Me Section -->
+            <section class="about max-w-3xl ml-auto">
+                <h2 class="bio text-sm text-lab-text-muted leading-relaxed">
+                    Anish is a strategist, operator, and consultant. His expertise has always been helping
+                    people think big ideas and then go from ideas to execution. He has managed crisis war rooms
+                    during COVID, built strategy & impact practices for VC funds, and solved growth & operations
+                    for startups.
+                    <span
+                        class="more-trigger pointer-events-auto cursor-pointer border-b border-lab-text-subtle hover:border-lab-text text-lab-text transition-colors ml-1"
+                        onclick="toggleBio()">Read more</span>
+                </h2>
+
+                <div id="bio-expanded-content" class="more hidden mt-10 transition-all duration-500 ease-in-out">
+                    <div class="diptych grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <!-- Column 1: Impact -->
+                        <div class="cv text-[12.5px] leading-[16px] text-[#0a0a0a] space-y-8">
+                            <div>
+                                <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">Impact</h2>
+                                <ul class="space-y-0.5 list-none pl-0">
+                                    <li class="group">
+                                        <a href="https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Industry%20Standards%20Note%20on%20BRSR%20with%20Annexure%20%281%29.pdf"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Contributor, India's CEPA (Spend Based) Methodology <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://iris.thegiin.org/webinar/launch-webinar-navigating-impact-theme-climate-adaptation-and-resilience/"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Global Standard Setter, GIIN IRIS+ Climate A&R <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://carbonaccountingfinancials.com/en/newsitem/pcaf-announces-stepchange-as-first-regional-partner-to-support-the-indian-financial-market"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            First Regional Partner, PCAF India Chapter <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://bnz.becknprotocol.io/wp-content/uploads/2025/07/BNZ-Report-2024.pdf.pdf"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Collaborater, DPI for Climate <span class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://dymez6ioe12by.cloudfront.net/media/wp-content/uploads/2025/05/26125748/1822653646671481_202501300619risk_assesment_playbook.pdf"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Market Expansion, Climate Risk For Central Banks <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://www.au.bank.in/press-releases_25-11-final-PR-IFC-partnership-revised.pdf"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Market Pioneer, India's First NBFC Climate Risk Deal <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://www.unepfi.org/regions/asia-pacific/asia-pacific-regional-roundtable-2025/"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Regional Partner, UNEP-FI <span class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://ssir.org/articles/entry/deep-listening-for-impact-measurement"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Pioneer, AI-Driven Impact Measurement <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://drr.open-contracting.in/en" target="_blank"
+                                            class="hover:opacity-50 transition-opacity">
+                                            Funder, Disaster Resilience For 271 Mn Citizens <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://it.telangana.gov.in/initiatives/emerging-technologies/"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Nominated, Emerging Technologies Board Telangana (RAI)<span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://www.clintonhealthaccess.org/wp-content/uploads/2021/09/CHAI-Annual-Report-2020-digital.pdf"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Covid Crisis Task Force Lead in Maharashtra <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="group">
+                                        <a href="https://drive.google.com/file/d/1CBre_kTYetxS0MgUAYpz08gb0bJov3sm/view?usp=sharing"
+                                            target="_blank" class="hover:opacity-50 transition-opacity">
+                                            Founding Lead, Climate-Tech Practice <span
+                                                class="text-[10px] opacity-60">↗</span>
+                                        </a>
+                                    </li>
+
+                                    <!-- Non-linked items -->
+                                    <li class="group">
+                                        <span class="font-normal text-[#0a0a0a]">Fast-Track Promotion, StepChange</span>
+                                    </li>
+
+                                    <li class="group">
+                                        <span class="font-normal text-[#0a0a0a]">Performance Offer, McKinsey &
+                                            Co.</span>
+                                    </li>
+
+                                    <li class="group">
+                                        <span class="font-normal text-[#0a0a0a]">Fast-Track Promotion, Kearney</span>
+                                    </li>
+
+                                    <li class="group">
+                                        <span class="font-normal text-[#0a0a0a]">Fast-Track Promotion, Citi</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- Partners Moved to Col 1 -->
+                            <div>
+                                <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">Select Partners & Clients</h2>
+
+                                <div class="space-y-1">
+                                    <div>
+                                        <h4 class="text-[12.5px] text-[#929292] mb-1">Global & Policy</h4>
+                                        <div class="flex flex-wrap gap-x-1">
+                                            <a href="https://www.unepfi.org/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">UNEP-FI,</a>
+                                            <a href="https://www.worldbank.org/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">World Bank,</a>
+                                            <a href="https://www.ifc.org/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">IFC,</a>
+                                            <a href="https://www.cdri.world/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">CDRI,</a>
+                                            <a href="https://carbonaccountingfinancials.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">PCAF</a>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-[12.5px] text-[#929292] mb-1">Government (Regulators)</h4>
+                                        <div class="flex flex-wrap gap-x-1">
+                                            <a href="https://rbi.org.in/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">RBI,</a>
+                                            <a href="https://www.sebi.gov.in/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">SEBI,</a>
+                                            <a href="https://www.centralbank.ae/en/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Central Bank of the UAE,</a>
+                                            <a href="https://www.bsp.gov.ph/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Bangko Sentral ng
+                                                Pilipinas</a>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-[12.5px] text-[#929292] mb-1">Government (State & Ministry)</h4>
+                                        <div class="flex flex-wrap gap-x-1">
+                                            <a href="https://www.meity.gov.in/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">MEITY,</a>
+                                            <a href="https://nha.gov.in/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">National Health
+                                                Authority,</a>
+                                            <a href="https://www.telangana.gov.in/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Gov. of Telangana,</a>
+                                            <a href="https://www.jeevandayee.gov.in/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Maharashtra State Health
+                                                Dept,</a>
+                                            <a href="https://delhi.gov.in/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Delhi Govt (Education)</a>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-[12.5px] text-[#929292] mb-1">Corporate & Industrial</h4>
+                                        <div class="flex flex-wrap gap-x-1">
+                                            <a href="https://www.microsoft.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Microsoft,</a>
+                                            <a href="https://www.mcdonalds.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">McDonald's,</a>
+                                            <a href="https://www.itcportal.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">ITC,</a>
+                                            <a href="https://csmia-mumbai.adaniairports.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Adani (Mumbai Airport),</a>
+                                            <a href="https://www.aubank.in/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">AU Small Finance Bank,</a>
+                                            <a href="https://www.dib.ae/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Dubai Islamic Bank,</a>
+                                            <a href="https://www.techmahindra.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Tech Mahindra</a>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-[12.5px] text-[#929292] mb-1">Startups</h4>
+                                        <div class="flex flex-wrap gap-x-1">
+                                            <a href="https://www.swiggy.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Swiggy,</a>
+                                            <a href="https://www.urbancompany.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Urban Company,</a>
+                                            <a href="https://www.dailyobjects.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Daily Objects,</a>
+                                            <a href="https://wondergirls.co/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Wondergirls</a>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-[12.5px] text-[#929292] mb-1">Investors</h4>
+                                        <div class="flex flex-wrap gap-x-1">
+                                            <a href="https://www.prosus.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Prosus,</a>
+                                            <a href="https://www.saisoncapital.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Saison Capital,</a>
+                                            <a href="https://gefcapital.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">GEF Capital,</a>
+                                            <a href="https://flourishventures.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Flourish Ventures</a>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-[12.5px] text-[#929292] mb-1">Consulting Partners</h4>
+                                        <div class="flex flex-wrap gap-x-1">
+                                            <a href="https://www.bcg.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">BCG,</a>
+                                            <a href="https://www.deloitte.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">Deloitte,</a>
+                                            <a href="https://www.pwc.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">PwC,</a>
+                                            <a href="https://kpmg.com/" target="_blank"
+                                                class="hover:opacity-50 transition-opacity">KPMG</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="font-medium text-lab-text mb-4">Select Partners & Clients</h4>
-                            <ul class="space-y-4 text-sm text-lab-text-muted">
-                                <li>
-                                    <strong class="text-lab-text">Global & Policy:</strong>
-                                    <a href="https://www.unepfi.org/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">United Nations UNEP-FI</a>,
-                                    <a href="https://www.worldbank.org/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">World Bank</a>,
-                                    <a href="https://www.ifc.org/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">IFC</a>,
-                                    <a href="https://www.cdri.world/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">CDRI</a>,
-                                    <a href="https://carbonaccountingfinancials.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">PCAF</a>
-                                </li>
-                                <li>
-                                    <strong class="text-lab-text">Government (Regulators):</strong>
-                                    <a href="https://rbi.org.in/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">RBI</a>,
-                                    <a href="https://www.sebi.gov.in/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">SEBI</a>,
-                                    <a href="https://www.centralbank.ae/en/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Central Bank of the UAE</a>,
-                                    <a href="https://www.bsp.gov.ph/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Bangko Sentral ng Pilipinas</a>
-                                </li>
-                                <li>
-                                    <strong class="text-lab-text">Government (State & Ministry):</strong>
-                                    <a href="https://www.meity.gov.in/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">MEITY</a>,
-                                    <a href="https://nha.gov.in/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">National Health Authority</a>,
-                                    <a href="https://www.telangana.gov.in/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Gov. of Telangana</a>,
-                                    <a href="https://www.jeevandayee.gov.in/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Maharashtra State Health Dept</a>,
-                                    <a href="https://delhi.gov.in/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Delhi Govt (Education)</a>
-                                </li>
-                                <li>
-                                    <strong class="text-lab-text">Corporate & Industrial:</strong>
-                                    <a href="https://www.microsoft.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Microsoft</a>,
-                                    <a href="https://www.mcdonalds.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">McDonald's</a>,
-                                    <a href="https://www.itcportal.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">ITC</a>,
-                                    <a href="https://csmia-mumbai.adaniairports.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Adani (Mumbai Airport)</a>,
-                                    <a href="https://www.aubank.in/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">AU Small Finance Bank</a>,
-                                    <a href="https://www.dib.ae/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Dubai Islamic Bank</a>,
-                                    <a href="https://www.techmahindra.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Tech Mahindra</a>
-                                </li>
-                                <li>
-                                    <strong class="text-lab-text">Startups:</strong>
-                                    <a href="https://www.swiggy.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Swiggy</a>,
-                                    <a href="https://www.urbancompany.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Urban Company</a>,
-                                    <a href="https://www.dailyobjects.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Daily Objects</a>,
-                                    <a href="https://wondergirls.co/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Wondergirls</a>
-                                </li>
-                                <li>
-                                    <strong class="text-lab-text">Investors:</strong>
-                                    <a href="https://www.prosus.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Prosus</a>,
-                                    <a href="https://www.saisoncapital.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Saison Capital</a>,
-                                    <a href="https://gefcapital.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">GEF Capital</a>,
-                                    <a href="https://flourishventures.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Flourish Ventures</a>,
-                                    <a href="https://www.globalfounderscapital.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Global Founders Capital</a>
-                                </li>
-                                <li>
-                                    <strong class="text-lab-text">Consulting Partners:</strong>
-                                    <a href="https://www.bcg.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">BCG</a>,
-                                    <a href="https://www.deloitte.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">Deloitte</a>,
-                                    <a href="https://www.pwc.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">PwC</a>,
-                                    <a href="https://kpmg.com/" target="_blank"
-                                        class="hover:text-lab-text hover:underline">KPMG</a>
-                                </li>
-                            </ul>
 
-                            <h4 class="font-medium text-lab-text mb-4 mt-8">Experience</h4>
-                            <ul class="space-y-3 text-sm">
-                                <li>
-                                    <div class="font-medium text-lab-text">Independent Strategy Consultant</div>
-                                    <div class="text-lab-text-muted italic mt-0.5">Current: Special Mandate with MEITY
-                                        on AI Impact Summit</div>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Director, Strategy & Ops</span>
-                                    <span class="text-lab-text-muted">@ StepChange</span>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Lead, Strategy & Impact</span>
-                                    <span class="text-lab-text-muted">@ Omidyar Network India</span>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Engagement Manager</span>
-                                    <span class="text-lab-text-muted">@ McKinsey & Company</span>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Senior Associate</span>
-                                    <span class="text-lab-text-muted">@ Clinton Health Access Initiative</span>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Associate</span>
-                                    <span class="text-lab-text-muted">@ Kearney</span>
-                                </li>
-                                <li>
-                                    <span class="font-medium text-lab-text">Graduate Management Associate</span>
-                                    <span class="text-lab-text-muted">@ CitiBank</span>
-                                </li>
-                            </ul>
-
-                            <h4 class="font-medium text-lab-text mb-4 mt-8">Speaking & Teaching</h4>
-                            <ul class="space-y-2 text-sm text-lab-text-muted">
-                                <li>Climate Finance Instructor, NISM</li>
-                                <li>Expert Panellist, RBI & CDRI</li>
-                                <li>Board Member, Responsible AI Governance Board (Telangana)</li>
-                                <li>Guest Lecturer, IIM Lucknow</li>
-                                <li>Startup Mentor, MESA</li>
-                            </ul>
-
-                            <h4 class="font-medium text-lab-text mb-4 mt-8">Education</h4>
-                            <ul class="space-y-2 text-sm text-lab-text-muted">
-                                <li>MBA, IIM Ahmedabad</li>
-                                <li>B.A. Economics (Hons), St. Stephen's College</li>
-                            </ul>
-
-                            <h4 class="font-medium text-lab-text mb-4 mt-8">Select Skills</h4>
-                            <ul class="space-y-2 text-sm text-lab-text-muted">
-                                <li><strong class="text-lab-text">Strategy:</strong> GTM, Deal Enablement, Policy
-                                    Design, Cost Optimization</li>
-                                <li><strong class="text-lab-text">Tech:</strong> Power BI, SQL, Python, AI/ML Product
-                                    Management</li>
-                                <li><strong class="text-lab-text">Tools:</strong> Salesforce, Jira, Asana, Excel</li>
-                                <li><strong class="text-lab-text">Analog:</strong> Crocheting, Random Fact Gathering,
-                                    Tinkering with AI, Reading Research Papers</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <script>
-                    function toggleBio() {
-                        const content = document.getElementById('bio-expanded-content');
-                        const btn = document.getElementById('read-more-btn');
-
-                        if (content.classList.contains('hidden')) {
-                            content.classList.remove('hidden');
-                            // Small delay to allow display:block to apply before opacity transition
-                            setTimeout(() => {
-                                content.classList.remove('opacity-0');
-                            }, 10);
-                            btn.textContent = 'Read less';
-                        } else {
-                            content.classList.add('opacity-0');
-                            setTimeout(() => {
-                                content.classList.add('hidden');
-                            }, 300);
-                            btn.textContent = 'Read more';
-                        }
-                    }
-                </script>
-            </div>
-        </header>
-
-        <!-- Experiments Grid -->
-        <section id="experiments" class="mb-24">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-sm font-mono text-lab-text-subtle uppercase tracking-wider">Experiments</h2>
-                <span class="text-sm font-mono text-lab-text-subtle">
-                    {{ experiments|length }} projects
-                </span>
-            </div>
-            <p class="text-sm text-lab-text-muted leading-relaxed mb-8">
-                A personal space for building and shipping experimental AI projects. Click any experiment to launch it.
-            </p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {% for exp in experiments %}
-                <article class="experiment-card group relative" data-experiment-id="{{ exp.id }}"
-                    data-experiment-url="{{ exp.url }}" data-experiment-status="{{ exp.status }}"
-                    data-experiment-name="{{ exp.name }}" {% if exp.open_external %}
-                    onclick="window.open('{{ exp.url }}', '_blank')" {% else %}
-                    onclick="{% if exp.status == 'live' %}handleCardClick(this){% endif %}" {% endif %}>
-                    <div
-                        class="relative bg-lab-card border border-lab-border rounded-xl p-6 h-full transition-all duration-300 
-                                {% if exp.status == 'live' %}cursor-pointer hover:border-lab-border-light hover:shadow-md{% else %}cursor-not-allowed opacity-60{% endif %}">
-
-                        <!-- Header Row -->
-                        <div class="flex items-start justify-between mb-4">
-                            <!-- Icon -->
-                            <div
-                                class="w-10 h-10 rounded-lg bg-lab-bg border border-lab-border flex items-center justify-center text-xl">
-                                {{ exp.icon }}
+                        <!-- Column 2: Experience -->
+                        <div class="cv text-[12.5px] leading-[16px] text-[#0a0a0a] space-y-8">
+                            <div>
+                                <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">Experience</h2>
+                                <ul class="space-y-0.5 list-none pl-0">
+                                    <li>
+                                        Independent Strategy Consultant
+                                        <span class="block opacity-60">Current: Special Mandate with MEITY (AI Impact
+                                            Summit)</span>
+                                    </li>
+                                    <li>Director - Strategy & Ops, StepChange</li>
+                                    <li>Lead - Strategy & Impact, Omidyar Network India</li>
+                                    <li>Consultant, McKinsey & Company</li>
+                                    <li>Senior Associate, Clinton Health Access Initiative</li>
+                                    <li>Associate, Kearney</li>
+                                    <li>Graduate Management Associate, CitiBank</li>
+                                </ul>
                             </div>
 
-                            <!-- Status Badge -->
-                            {% if exp.status == 'live' %}
-                            <span
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                <span
-                                    class="text-[11px] font-medium text-emerald-700 uppercase tracking-wide">Live</span>
-                            </span>
-                            {% else %}
-                            <span
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-lab-bg border border-lab-border">
-                                <span
-                                    class="text-[11px] font-medium text-lab-text-subtle uppercase tracking-wide">Coming
-                                    Soon</span>
-                            </span>
-                            {% endif %}
+                            <div class="space-y-4">
+                                <div>
+                                    <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">Speaking & Teaching</h2>
+                                    <div class="flex flex-col text-[#0a0a0a]">
+                                        <span>Climate Finance Instructor (NISM)</span>
+                                        <span>Expert Panellist (RBI & CDRI)</span>
+                                        <span>Guest Lecturer (IIM Ahmedabad)</span>
+                                        <span>Startup Mentor (MESA)</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">Education</h2>
+                                    <div class="flex flex-col text-[#0a0a0a]">
+                                        <span>MBA (IIM Ahmedabad)</span>
+                                        <span>B.A. Economics Hons (St. Stephen's College)</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">Strategy Skills</h2>
+                                    <div class="flex flex-col text-[#0a0a0a]">
+                                        <span>GTM</span>
+                                        <span>Deal Enablement</span>
+                                        <span>Policy Design</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">Tech Skills</h2>
+                                    <div class="flex flex-col text-[#0a0a0a]">
+                                        <span>AI/ML Product Management</span>
+                                        <span>Power BI</span>
+                                        <span>SQL</span>
+                                        <span>Python</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 class="text-[12.5px] font-normal text-[#929292] mb-1">Analog Interests</h2>
+                                    <div class="flex flex-col text-[#0a0a0a]">
+                                        <span>Tinkering with AI</span>
+                                        <span>Independent Writer</span>
+                                        <span>Crocheting</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <!-- Content -->
-                        <h3
-                            class="text-base font-medium mb-2 group-hover:text-lab-accent transition-colors duration-200">
-                            {{ exp.name }}
-                        </h3>
-
-                        <p class="text-sm text-lab-text-muted leading-relaxed mb-4">
-                            {{ exp.description }}
-                        </p>
-
-                        <!-- Tags -->
-                        <div class="flex flex-wrap gap-2">
-                            {% for tag in exp.tags %}
-                            <span
-                                class="px-2 py-0.5 text-[11px] font-mono text-lab-text-subtle bg-lab-bg rounded border border-lab-border">
-                                {{ tag }}
-                            </span>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Hover Arrow -->
-                        {% if exp.status == 'live' %}
-                        <div
-                            class="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <svg class="w-4 h-4 text-lab-text-muted" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                            </svg>
-                        </div>
-                        {% endif %}
                     </div>
-                </article>
-                {% endfor %}
-            </div>
-        </section>
+                </div>
+            </section>
 
-        <!-- Footer -->
-        <footer class="py-8 border-t border-lab-border">
-            <p class="text-sm text-lab-text-subtle">
-                Not built with Lovable - 2026
+            <!-- Experiments Section -->
+            <section id="experiments">
+                <div class="mb-6 max-w-8xl">
+                    <h2 class="text-2xl font-serif text-lab-text mb-1">Experiments</h2>
+                    <p class="text-base md:text-lg text-lab-text leading-relaxed font-serif italic text-lab-text-muted">
+                        AI products I have built for myself using open source & EDGE alternatives of my
+                        favourite apps. It helps me see what is defensible and what is replaceable.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {% for exp in experiments %}
+                    <article class="experiment-card group relative h-full" data-experiment-id="{{ exp.id }}"
+                        data-experiment-url="{{ exp.url }}" {% if exp.open_external %}
+                        onclick="window.open('{{ exp.url }}', '_blank')" {% else %}
+                        onclick="{% if exp.status == 'live' %}handleCardClick(this){% endif %}" {% endif %}>
+
+                        <!-- Card Container -->
+                        <div
+                            class="h-full bg-lab-card border border-lab-border rounded-xl p-4 hover:border-lab-border-light hover:shadow-sm transition-all duration-300 flex flex-col gap-3 
+                                    {% if exp.status == 'live' %}cursor-pointer{% else %}cursor-not-allowed opacity-60{% endif %}">
+
+                            <!-- Header: Icon + Title -->
+                            <div class="flex items-start justify-between">
+                                <div
+                                    class="w-9 h-9 rounded-lg bg-lab-bg border border-lab-border flex items-center justify-center text-lg text-lab-text-muted">
+                                    {{ exp.icon }}
+                                </div>
+                                {% if exp.status == 'live' %}
+                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Content -->
+                            <div>
+                                <h3
+                                    class="text-sm font-medium text-lab-text group-hover:text-lab-accent transition-colors duration-200 mb-1.5">
+                                    {{ exp.name }}
+                                </h3>
+
+                                <p class="text-xs text-lab-text-muted leading-relaxed mb-2.5 line-clamp-2">
+                                    {{ exp.description }}
+                                </p>
+
+                                <!-- Tags -->
+                                <div class="flex flex-wrap gap-1.5">
+                                    {% for tag in exp.tags %}
+                                    <span
+                                        class="text-[10px] uppercase tracking-wider text-lab-text-subtle border border-lab-border px-1 py-0.5 rounded-sm">
+                                        {{ tag }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <!-- Mobile Footer -->
+        <footer class="md:hidden py-8 border-t border-lab-border mt-8 mb-4 col-span-1">
+            <p class="text-xs text-lab-text-subtle">
+                Not built with Lovable
+            </p>
+            <p class="text-xs text-lab-text-subtle mt-1">
+                &copy; 2026 Anish Sood
             </p>
         </footer>
     </div>
@@ -525,6 +531,33 @@
             </div>
         </div>
     </div>
+
+    <!-- Internal Scripts -->
+    <script>
+        function toggleBio() {
+            const bioContent = document.getElementById('bio-expanded-content');
+            const triggers = document.querySelectorAll('.more-trigger, .about-btn');
+
+            if (bioContent.classList.contains('hidden')) {
+                bioContent.classList.remove('hidden');
+                // Small delay to allow display:block to apply before opacity transition
+                setTimeout(() => {
+                    bioContent.classList.remove('opacity-0');
+                }, 10);
+                triggers.forEach(t => {
+                    if (t.classList.contains('more-trigger')) t.textContent = 'Read less';
+                });
+            } else {
+                bioContent.classList.add('opacity-0');
+                setTimeout(() => {
+                    bioContent.classList.add('hidden');
+                }, 300); // Match transition duration
+                triggers.forEach(t => {
+                    if (t.classList.contains('more-trigger')) t.textContent = 'Read more';
+                });
+            }
+        }
+    </script>
 
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/launcher.js') }}"></script>
