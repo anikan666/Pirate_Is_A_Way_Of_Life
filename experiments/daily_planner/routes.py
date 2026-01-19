@@ -92,7 +92,7 @@ I will give you emails from my "Tasks to be tracked" folder.
 INPUT EMAILS:
 {email_text}
 
-Your Goal: Extract ACTIONABLE TASKS and correctly identify WHO needs to take action.
+Your Goal: Extract ACTIONABLE TASKS and correctly identify WHO needs to take action, then create a daily schedule.
 
 CRITICAL LOGIC FOR IDENTIFYING THE ASSIGNEE:
 
@@ -125,8 +125,6 @@ RULES:
 5. **timeline_context**: Deadlines from email body, or "No deadline"
 
 6. **urgency**: "Critical", "High", "Normal", or "Low"
-
-7. **source_email_id**: The EMAIL # (1, 2, 3...)
 
 Output ONLY valid JSON:
 
