@@ -17,7 +17,11 @@ EMAIL #1:
 - Subject: Urgent Project
 - BODY: Please finish the report by EOD.
 
-Task: Extract valid JSON plan.
+RULES:
+1. Output ONLY valid JSON.
+2. Structure: { "summary": "...", "tasks": [] }
+
+Output ONLY valid JSON:
 """
 
 print("\nRunning generate_plan...")

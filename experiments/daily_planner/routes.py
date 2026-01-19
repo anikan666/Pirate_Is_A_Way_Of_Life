@@ -153,33 +153,16 @@ Output ONLY valid JSON:
         # 3. Final Data Preparation (Real or Mock)
         # 3. Final Data Preparation (Real or Mock)
         # Check if generation failed (None or has 'error' key)
+        # Check if generation failed (None or has 'error' key)
         if not plan_data or plan_data.get('error'):
-            # ROBUST FALLBACK - Generate tasks from emails with source_email_id for deep linking
-            
+            # NO FALLBACK - Show error explicitly as requested
             error_msg = plan_data.get('details', 'Unknown Error') if plan_data else "AI unavailable"
             
             if "ANTHROPIC_API_KEY" in error_msg:
                  error_msg = "Missing ANTHROPIC_API_KEY in Render Environment Variables"
             
-            summary = f"⚠️ AI Error: {error_msg}. showing {len(email_data)} emails as tasks."
-            
-            # extract_sender_name is now imported from gmail_service
+            summary = f"⚠️ AI Generation Failed: {error_msg}"
             tasks = []
-            for i, email in enumerate(email_data):
-                sender_name = extract_sender_name(email['sender'])
-                tasks.append({
-                    'title': email['subject'][:80],  # Truncate long subjects
-                    'description': f"Email from {sender_name}",
-                    'people': [sender_name],
-                    'action_type': 'Do',  # Default to direct action in fallback
-                    'assignee': 'You',
-                    'urgency': 'High' if i < 3 else 'Normal',
-                    'timeline_context': 'Check email for details',
-                    'source_email_id': i + 1,  # 1-indexed for deep linking
-                    'source': 'Fallback'
-                })
-            
-            # Empty schedule - let user drag items
             schedule = []
         else:
             summary = plan_data.get('summary', 'No summary generated.')
