@@ -25,11 +25,20 @@ def get_provider() -> str:
 
 
 def clean_json_response(text: str) -> str:
-    """Strip markdown code blocks from LLM response."""
-    return text.replace('```json', '').replace('```', '').strip()
+    """Strip markdown code blocks and preamble from LLM response."""
+    import re
+    # Remove markdown code blocks
+    text = text.replace('```json', '').replace('```', '')
+    
+    # regex to find the first '{' and last '}'
+    match = re.search(r'(\{.*\})', text, re.DOTALL)
+    if match:
+        return match.group(1)
+        
+    return text.strip()
 
 
-def generate_with_anthropic(prompt: str, system_prompt: str = "You are an elite Executive Assistant. Output only valid JSON.") -> dict:
+def generate_with_anthropic(prompt: str, system_prompt: str = None) -> dict:
     """
     Generate content using Anthropic Claude.
     
@@ -53,6 +62,16 @@ def generate_with_anthropic(prompt: str, system_prompt: str = "You are an elite 
     
     client = anthropic.Anthropic(api_key=api_key)
     
+    if system_prompt is None:
+        system_prompt = """You are an elite Executive Assistant.
+<instructions>
+1. Analyze the input emails carefully.
+2. Output ONLY valid JSON matching the requested structure.
+3. Do NOT include any preamble, markdown formatting, or explanation.
+4. If no tasks are found, return empty lists.
+</instructions>
+"""
+
     message = client.messages.create(
         model=Config.LLM_MODEL_NAME,
         max_tokens=4096,
@@ -65,7 +84,7 @@ def generate_with_anthropic(prompt: str, system_prompt: str = "You are an elite 
     
     clean_text = clean_json_response(message.content[0].text)
     result = json.loads(clean_text)
-    logger.info("Successfully generated plan with Anthropic Claude Haiku!")
+    logger.info(f"Successfully generated plan with Anthropic {Config.LLM_MODEL_NAME}!")
     return result
 
 

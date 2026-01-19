@@ -4,6 +4,7 @@ import re
 import requests
 import json
 import logging
+import os
 
 try:
     import yt_dlp
@@ -55,6 +56,14 @@ def fetch_transcript_with_ytdlp(video_url):
         'quiet': True,
         'no_warnings': True,
     }
+    
+
+
+    # Check for cookies.txt
+    cookies_file = 'cookies.txt'
+    if os.path.exists(cookies_file):
+        ydl_opts['cookiefile'] = cookies_file
+        logger.info(f"Using cookies from {cookies_file} for yt-dlp")
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
@@ -145,6 +154,75 @@ def fetch_transcript_with_ytdlp(video_url):
         return transcript
 
 
+
+def fetch_transcript_with_notegpt(video_id):
+    """
+    Attempts to fetch transcript using NoteGPT's public API.
+    This acts as a proxy to bypass YouTube's direct blocking.
+    """
+    url = "https://notegpt.io/api/v2/video-transcript"
+    params = {
+        "platform": "youtube",
+        "video_id": video_id
+    }
+    # Headers mimicking a real browser visiting NoteGPT
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Referer": "https://notegpt.io/youtube-transcript-generator",
+        "Origin": "https://notegpt.io",
+        "Accept": "application/json, text/plain, */*"
+    }
+
+    try:
+        logger.info(f"Attempting to fetch transcript via NoteGPT for {video_id}")
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        
+        if response.status_code != 200:
+            logger.warning(f"NoteGPT API returned status {response.status_code}")
+            return None
+            
+        data = response.json()
+        
+        transcript_segments = []
+        
+        # Check if the response matches expected structure
+        items = data.get('data', [])
+        if not items and isinstance(data, list):
+            items = data
+            
+        if not items:
+             logger.warning("NoteGPT returned empty transcript data")
+             return None
+
+        # Transform to our internal format
+        for item in items:
+            text = item.get('text') or item.get('content') or ""
+            start = item.get('start') or item.get('startTime') or 0
+            
+            # Ensure numbers
+            try:
+                start = float(start)
+            except (ValueError, TypeError):
+                start = 0.0
+                
+            if text:
+                transcript_segments.append({
+                    'text': text,
+                    'start': start
+                })
+                
+        if not transcript_segments:
+            logger.warning("Could not parse NoteGPT transcript format")
+            return None
+            
+        logger.info(f"Successfully fetched {len(transcript_segments)} segments from NoteGPT")
+        return transcript_segments
+
+    except Exception as e:
+        logger.error(f"NoteGPT fetch failed: {str(e)}")
+        return None
+
+
 def get_video_transcript(video_url):
     """
     Fetches transcript for a given YouTube URL.
@@ -158,33 +236,51 @@ def get_video_transcript(video_url):
     full_transcript = None
     last_error = None
 
-    # --- Attempt 1: youtube_transcript_api ---
+    # --- Attempt 0: NoteGPT Proxy (Best for bypassing IP blocks) ---
     try:
-        # Strategy 1a: Try standard static method (newer versions)
-        if hasattr(YouTubeTranscriptApi, 'get_transcript'):
-            try:
-                full_transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'en-US'])
-            except (TranscriptsDisabled, NoTranscriptFound, VideoUnavailable):
+        full_transcript = fetch_transcript_with_notegpt(video_id)
+    except Exception as e:
+        logger.error(f"NoteGPT strategy failed: {e}")
+
+    # --- Attempt 1: youtube_transcript_api ---
+    if not full_transcript:
+        try:
+            cookies_file = 'cookies.txt'
+            cookies_path = cookies_file if os.path.exists(cookies_file) else None
+            if cookies_path:
+                 logger.info(f"Using cookies from {cookies_path} for youtube_transcript_api")
+
+            # Strategy 1a: Try standard static method (newer versions)
+            if hasattr(YouTubeTranscriptApi, 'get_transcript'):
                 try:
-                    full_transcript = YouTubeTranscriptApi.get_transcript(video_id)
+                    # Note: 'cookies' param requires a file path in newer versions
+                    kwargs = {'languages': ['en', 'en-US']}
+                    if cookies_path:
+                        kwargs['cookies'] = cookies_path
+                    full_transcript = YouTubeTranscriptApi.get_transcript(video_id, **kwargs)
+                except (TranscriptsDisabled, NoTranscriptFound, VideoUnavailable):
+                    try:
+                        full_transcript = YouTubeTranscriptApi.get_transcript(video_id)
+                    except Exception:
+                        pass
+            
+            # Strategy 1b: Instance method (older/custom versions)
+            if not full_transcript:
+                try:
+                    api = YouTubeTranscriptApi()
+                    if hasattr(api, 'fetch'):
+                         try:
+                             # Old versions might not support cookies easily this way, but let's try standard fetch
+                             full_transcript = api.fetch(video_id, languages=['en', 'en-US'])
+                         except Exception:
+                             full_transcript = api.fetch(video_id)
                 except Exception:
                     pass
-        
-        # Strategy 1b: Instance method (older/custom versions)
-        if full_transcript is None:
-            try:
-                api = YouTubeTranscriptApi()
-                if hasattr(api, 'fetch'):
-                     try:
-                         full_transcript = api.fetch(video_id, languages=['en', 'en-US'])
-                     except Exception:
-                         full_transcript = api.fetch(video_id)
-            except Exception:
-                pass
-                
-    except Exception as e:
-        last_error = e
-        print(f"youtube_transcript_api failed: {e}")
+                    
+        except Exception as e:
+            last_error = e
+            logger.error(f"youtube_transcript_api failed: {str(e)}")
+            print(f"youtube_transcript_api failed: {e}")
 
     # --- Attempt 2: yt-dlp Fallback ---
     if not full_transcript:
