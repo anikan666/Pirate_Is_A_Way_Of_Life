@@ -2,5 +2,3 @@ flask
 youtube-transcript-api
 anthropic
 python-dotenv
-requests
-yt-dlp
