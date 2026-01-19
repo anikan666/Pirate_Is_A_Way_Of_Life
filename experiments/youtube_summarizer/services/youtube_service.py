@@ -38,11 +38,55 @@ def get_video_transcript(video_url):
     if not video_id:
         raise ValueError("Invalid YouTube URL")
 
-    try:
-        # Fetch transcript
-        full_transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'en-US'])
-    except Exception as e:
-         raise ValueError(f"Could not retrieve transcript: {str(e)}")
+    # Try fetching transcript with fallback mechanisms
+    full_transcript = None
+    
+    # Method 1: Static get_transcript (Standard)
+    if hasattr(YouTubeTranscriptApi, 'get_transcript'):
+        try:
+            full_transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'en-US'])
+        except Exception:
+            # Try without languages if that failed
+            try:
+                full_transcript = YouTubeTranscriptApi.get_transcript(video_id)
+            except Exception:
+                pass
+    
+    # Method 2: Instance-based fetch (Older versions)
+    if not full_transcript:
+        try:
+            # Some older versions operate via an instance
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            # Try to find English manually
+            try:
+                transcript = transcript_list.find_transcript(['en', 'en-US']) 
+            except:
+                # Fallback to any transcript
+                transcript = next(iter(transcript_list))
+            
+            full_transcript = transcript.fetch()
+        except AttributeError:
+             # If list_transcripts doesn't exist, try direct fetch on instance
+             try:
+                 api = YouTubeTranscriptApi()
+                 if hasattr(api, 'fetch'):
+                     try:
+                         full_transcript = api.fetch(video_id, languages=['en', 'en-US'])
+                     except:
+                         full_transcript = api.fetch(video_id)
+                 elif hasattr(api, 'get_transcript'):
+                     full_transcript = api.get_transcript(video_id)
+             except Exception as e:
+                 logger.warning(f"Instance fetch failed: {e}")
+        except Exception as e:
+            logger.warning(f"Secondary fetch method failed: {e}")
+
+    if not full_transcript:
+        # Last ditch: maybe it IS a static method but failed previously?
+        # Re-raise the original error if we really can't find it, but let's try one more naked call if we haven't
+        if not hasattr(YouTubeTranscriptApi, 'get_transcript'):
+             pass # We can't do anything more
+        pass
 
     if not full_transcript:
          raise ValueError("Could not fetch transcript (empty result)")
@@ -51,8 +95,17 @@ def get_video_transcript(video_url):
     formatted_text_parts = []
     
     for entry in full_transcript:
-        start_time = entry.get('start', 0)
-        text_content = entry.get('text', '')
+        start_time = 0
+        text_content = ""
+        
+        # Handle Dictionary (standard)
+        if isinstance(entry, dict):
+            start_time = entry.get('start', 0)
+            text_content = entry.get('text', '')
+        # Handle Object (older versions)
+        else:
+            start_time = getattr(entry, 'start', 0)
+            text_content = getattr(entry, 'text', '')
             
         timestamp = format_timestamp(start_time)
         formatted_text_parts.append(f"[{timestamp}] {text_content}")
