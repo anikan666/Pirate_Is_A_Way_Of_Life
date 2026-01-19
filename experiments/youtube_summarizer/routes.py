@@ -55,7 +55,7 @@ def summarize():
         # Log the full error in production
         print(f"Error processing video {video_url}:")
         traceback.print_exc()
-        return jsonify({'error': 'Failed to process video'}), 500
+        return jsonify({'error': f'Failed to process video: {str(e)}'}), 500
 
 @youtube_bp.route('/chat', methods=['POST'])
 def chat():
