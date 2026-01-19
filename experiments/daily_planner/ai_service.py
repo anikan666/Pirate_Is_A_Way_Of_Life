@@ -21,7 +21,8 @@ logger = logging.getLogger(__name__)
 
 def get_provider() -> str:
     """Get the configured LLM provider from environment."""
-    return os.environ.get('LLM_PROVIDER', 'ollama').lower()
+    from config import Config
+    return Config.LLM_PROVIDER.lower()
 
 
 def clean_json_response(text: str) -> str:
