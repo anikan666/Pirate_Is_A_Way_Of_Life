@@ -200,6 +200,13 @@ def generate_plan(prompt: str) -> Optional[dict]:
         print(f"Traceback:")
         traceback.print_exc()
         print(f"{'='*60}\n")
-        print("Falling back to MOCK AI data for demo purposes...")
         
-        return None
+        # Return error details instead of None so UI can show it
+        return {
+            "error": "AI Generation Failed",
+            "details": str(e),
+            "provider": provider,
+            "tasks": [],     # Empty default
+            "schedule": [],  # Empty default
+            "summary": f"Error: {str(e)}"
+        }

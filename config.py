@@ -16,7 +16,7 @@ class Config:
     ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
     LLM_PROVIDER = os.environ.get('LLM_PROVIDER', 'anthropic')
-    LLM_MODEL_NAME = os.environ.get('LLM_MODEL_NAME', 'claude-haiku-4-5-20251001')
+    LLM_MODEL_NAME = os.environ.get('LLM_MODEL_NAME', 'claude-3-haiku-20240307')
 
     # Common Settings
     TIMEZONE = os.environ.get('TIMEZONE', 'UTC')

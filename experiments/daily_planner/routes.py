@@ -151,9 +151,17 @@ Output ONLY valid JSON:
         plan_data = generate_plan(prompt)
 
         # 3. Final Data Preparation (Real or Mock)
-        if not plan_data:
+        # 3. Final Data Preparation (Real or Mock)
+        # Check if generation failed (None or has 'error' key)
+        if not plan_data or plan_data.get('error'):
             # ROBUST FALLBACK - Generate tasks from emails with source_email_id for deep linking
-            summary = f"⚠️ AI unavailable. Showing {len(email_data)} emails as tasks. Drag to schedule."
+            
+            error_msg = plan_data.get('details', 'Unknown Error') if plan_data else "AI unavailable"
+            
+            if "ANTHROPIC_API_KEY" in error_msg:
+                 error_msg = "Missing ANTHROPIC_API_KEY in Render Environment Variables"
+            
+            summary = f"⚠️ AI Error: {error_msg}. showing {len(email_data)} emails as tasks."
             
             # extract_sender_name is now imported from gmail_service
             tasks = []
